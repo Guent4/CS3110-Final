@@ -1,26 +1,5 @@
-(* Describe which repository, local or remote, that the user is referring to *)
-type host = LOCAL | REMOTE
+open Types
 
-(* Commands that OASys can support *)
-type cmd = PUSH | PULL | ADD | COMMIT | BRANCH | CHECKOUT | MERGE | DIFF
-	| STATUS | CONFIG | HELP | CLONE | INIT | LOG | RESET | QUIT
-
-(* A single argument for the command (i.e. "commit message" in 
- *	"git commit -m "commit message"", repository name, )
- *)
-type arg = string 
-
-(* All of the possible options that will be supported (i.e "-a" in
- *	"git add -a")
- *)
-type opt = HEAD | MSG | ORIGIN | ALL | HARD | SOFT | INCLUDE | SETUPSTREAM
-	| QUIET | VERBOSE | FORCE | DELETE | RENAME | NEWBRANCH | BRANCHES
-
-(* This is the type that the user input will be parsed into.  The actual commands
- *	described in the cmd_expr will be executed later in OASys
- *)
-type cmd_expr = host * cmd * opt list * arg list
-
-(* Takes in the lexed user input and convert it into a cmd_expr to be interpreted
- *	and executed by OASys *)
+(* Takes in the lexed user input and convert it into a cmd_expr to be
+ *	interpreted and executed by OASys *)
 val parse : string list -> cmd_expr
