@@ -1,4 +1,6 @@
 type id = string
 type msg = string
 type path = string
-type palmtree = Node of id * msg * path * Node list 
+
+(* Tree stucture with nodes containing request id, message, and file path *)
+type palmtree = Node of id * msg * path * Node list
