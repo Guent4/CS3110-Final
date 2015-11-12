@@ -20,4 +20,3 @@ type opt = HEAD | MSG | ORIGIN | ALL | HARD | SOFT | INCLUDE | SETUPSTREAM
  *	described in the cmd_expr will be executed later in OASys
  *)
 type cmd_expr = host * cmd * opt list * arg list
-
