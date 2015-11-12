@@ -1,0 +1,1 @@
+val read : unit -> string
