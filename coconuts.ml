@@ -30,12 +30,12 @@ type msg = string
 (* The path to the file containing the contents of the commit *)
 type path = string
 
-type palm_tree =
+type node =
   | Nil
-  | Init of id * msg
-  | Commit of id * msg * predecessor
-  | Stage of path
-and predecessor = palm_tree
+  | Commit of id * msg * node
+  | Stage of id
+
+type palm_tree = (string * node) list
 
 (* JSON used for sending and receiving data. *)
 type json
