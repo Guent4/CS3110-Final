@@ -11,6 +11,5 @@ val read : string -> string list
  * [write filename lines] simulates an Out_channel that "overwrites" the
  * existing [filename] with [lines]
  *
- * Pre: for all s in [lines], s contains no "\n"
  *)
 val write : string -> string list -> unit

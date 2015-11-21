@@ -12,6 +12,12 @@ let lines = read f
 
 TEST = (lines = [])
 
+let () = write f ["testing1\ntesting2"]
+
+let lines = read f
+
+TEST = (lines = ["testing1";"testing2"])
+
 let () = write f ["testing3"]
 
 let lines = read f
