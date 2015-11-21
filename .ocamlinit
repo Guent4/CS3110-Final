@@ -1,3 +1,9 @@
 #directory "_build";;
 
 #use "palmtreeupdater.ml";;
+#use "cameljson.ml";;
+#use "core.ml";;
+#use "fileio.ml";;
+#use "fileio_test.ml";;
+#use "palmtree.ml";;
+#use "palmtreeupdator.ml";;
