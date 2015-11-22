@@ -27,15 +27,13 @@ type id = string
 (* The commit message *)
 type msg = string
 
-(* The path to the file containing the contents of the commit *)
-type path = string
+type node = Commit of id * msg | Add
 
-type node =
-  | Nil
-  | Commit of id * msg * node
-  | Stage of id
+type branch = node list
 
-type palm_tree = (string * node) list
+module StringMap = Map.Make(struct type t = string let compare a b = Pervasives.compare a b end)
+
+type palm_tree = branch StringMap.t
 
 (* JSON used for sending and receiving data. *)
 type json
