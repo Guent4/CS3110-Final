@@ -5,5 +5,3 @@
 #use "core.ml";;
 #use "fileio.ml";;
 #use "fileio_test.ml";;
-#use "palmtree.ml";;
-#use "palmtreeupdator.ml";;
