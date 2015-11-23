@@ -35,9 +35,19 @@ let translate_cmd cmd_string = match cmd_string with
   | s -> INVALID_CMD s
 
 let translate_opt opt_string = match opt_string with
-  | "-m" | "--message" -> MSG
-  | "-a" | "--ALL" -> ALL
-  | s -> INVALID_OPT s
+  | "-m" | "--message"                  -> MSG
+  | "-a" | "--all"                      -> ALL
+  | "--hard"                            -> HARD
+  | "--soft"                            -> SOFT
+  | "-u" | "--set-upstream"             -> SETUPSTREAM
+  | "-q" | "--quiet"                    -> QUIET
+  | "-v" | "--verbose"                  -> VERBOSE
+  | "-f" | "--force"                    -> FORCE
+  | "-d" | "--delete"                   -> DELETE
+  | "-rm" | "--remove"                  -> REMOVE
+  | "-rn" | "--rename"                  -> RENAME
+  | "-b"                                -> NEWBRANCH
+  | s                                   -> INVALID_OPT s
 
 let parse_cmd cmd_elmt : cmd =
   translate_cmd cmd_elmt
