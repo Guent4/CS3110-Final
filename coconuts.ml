@@ -6,6 +6,7 @@ type host = LOCAL | REMOTE
 (* Commands that OASys can support *)
 type cmd = PUSH | PULL | ADD | COMMIT | BRANCH | CHECKOUT | MERGE | DIFF
   | STATUS | CONFIG | HELP | CLONE | INIT | LOG | RESET | QUIT
+  | INVALID_CMD of string
 
 (* A single argument for the command (i.e. "commit message" in
  *  "git commit -m "commit message"", repository name, )
@@ -17,6 +18,7 @@ type arg = string
  *)
 type opt = HEAD | MSG | ORIGIN | ALL | HARD | SOFT | INCLUDE | SETUPSTREAM
   | QUIET | VERBOSE | FORCE | DELETE | RENAME | NEWBRANCH | BRANCHES
+  | INVALID_OPT of string
 
 (* This is the type that the user input will be parsed into.  The actual commands
  *  described in the cmd_expr will be executed later in OASys
