@@ -24,7 +24,9 @@ type opt =  MSG | ORIGIN | ALL | SETUPSTREAM | QUIET |  DELETE | REMOVE | RENAME
  *)
 type cmd_expr = host * cmd * opt list * arg list
 
-type config = {repo_dir:string; branch_name:string}
+type file_path = string
+
+type config = {repo_dir: file_path; branch_name: file_path}
 
 type feedback = SUCCESS of string | FAILURE of string
 

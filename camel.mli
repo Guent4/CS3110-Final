@@ -12,4 +12,4 @@ val interpret: string -> cmd_expr option
 val read_interpret : unit -> cmd_expr option
 
 (* Responsible for taking a string and printing it to the REPL *)
-val output: string -> unit
+val output: feedback -> unit
