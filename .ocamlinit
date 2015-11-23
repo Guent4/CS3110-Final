@@ -1,5 +1,4 @@
 #require "pa_ounit";;
-
 #require "async";;
 #require "str";;
 #require "yojson";;
@@ -8,4 +7,9 @@
 #directory "_build";;
 
 #load "coconuts.d.cmo";;
+
 #load "palmtreeupdater.d.cmo";;
+#use "palmtreeupdater.ml";;
+let cmd = (LOCAL,INIT,[],[]);;
+let tree = PalmTree.empty;;
+let config = {repo_dir= "./test_proj/"; current_branch= "master"}

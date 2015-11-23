@@ -26,7 +26,7 @@ type cmd_expr = host * cmd * opt list * arg list
 
 type file_path = string
 
-type config = {repo_dir: file_path; branch_alias: string}
+type config = {repo_dir: file_path; current_branch: string}
 
 type feedback = Success of string | Failure of string
 
