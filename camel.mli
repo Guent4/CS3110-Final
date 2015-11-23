@@ -5,4 +5,4 @@ open Coconuts
 val read : unit -> cmd_expr
 
 (* Responsible for taking a string and printing it to the REPL *)
-val output: string -> unit
+val output: feedback -> unit
