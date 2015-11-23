@@ -8,5 +8,8 @@ val read : unit -> string
  *   return None if not a valid cmd_expr. *)
 val interpret: string -> cmd_expr option
 
+(* Performs the read function and then pipe output into interpret function *)
+val read_interpret : unit -> cmd_expr option
+
 (* Responsible for taking a string and printing it to the REPL *)
 val output: string -> unit

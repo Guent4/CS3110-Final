@@ -73,6 +73,9 @@ let interpret input =
   (* List.iter (fun x -> Printf.printf "%s\n" x) lexed; *)
   parse input lexed
 
+let read_interpret () =
+  interpret (read ())
+
 let output x =
   Printf.printf "%s\n" x
 
