@@ -1,7 +1,11 @@
-open Types
+open Coconuts
 
-(* Converts an OCaml Palmtree type into a JSON *)
-val deserialize : palmtree -> json
+(* Converts the JSON into an OCaml Palmtree type and string form of name of current branch *)
+val deserialize : string -> palm_tree * string
 
-(* Converts a JSON into an OCaml Palmtree type *)
-val serialize : json -> palmtree
+(* Parameter:
+ *   palmtree - a palmtree
+ *   string - branch name
+ *   string - file name to write to
+ * Converts an OCaml Palmtree type and string form of name of current branch and writes into the file*)
+val serialize : palm_tree * string * string -> unit

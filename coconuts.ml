@@ -31,7 +31,7 @@ type node = Commit of id * msg | Add
 
 type branch = node list
 
-module StringMap = Map.Make(struct type t = string let compare a b = Pervasives.compare a b end)
+module StringMap = Map.Make (struct type t = string let compare a b = Pervasives.compare a b end)
 
 type palm_tree = branch StringMap.t
 

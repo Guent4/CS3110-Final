@@ -31,12 +31,10 @@ type node = Commit of id * msg | Add
 
 type branch = node list
 
-module StringMap = Map.Make(struct type t = string let compare a b = Pervasives.compare a b end)
-
-type palm_tree = branch StringMap.t
+type palm_tree
 
 (* JSON used for sending and receiving data. *)
 type json
 
 (* Represents a client request. Contains a command and client information *)
-type request
+type request = {host:string; port:int; data:string; cmd:string}

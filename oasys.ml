@@ -1,10 +1,12 @@
+open Coconuts
+open Fileio
+open Cameljson
 open Palmtreeupdater
 
-let () =
-  (* read *)
-  (* lex *)
-  (* parse *)
-  (* json -> tree *)
-  (* cmd_expr -> tree -> tree *)
-  (* tree -> json *)
-  (* fileio *)
+let tree_file_name = "head.json"
+
+let eval cmd =
+  let (tree,branch_name) = Cameljson.deserialize json_tree in
+  let (tree',branch_name',feedback) = Palmtreeupdater.update_tree cmd tree branch_name in
+  let () = Cameljson.serialize tree' branch_name' tree_file_name in
+  feedback

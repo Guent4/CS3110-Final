@@ -1,11 +1,11 @@
 open Core.Std
 
-(* READ *)
+(* (* READ *)
 
 let read filename =
   In_channel.read_lines filename
 
-(* WRITE *)
+WRITE
 
 let write filename lines =
-  Out_channel.write_lines filename lines
+  Out_channel.write_lines filename lines *)

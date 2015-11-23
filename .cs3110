@@ -1,0 +1,2 @@
+compile.opam_packages=async,str
+compile.thread=true
