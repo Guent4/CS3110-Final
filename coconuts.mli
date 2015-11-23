@@ -14,8 +14,8 @@ type arg
 (* All of the possible options that will be supported (i.e "-a" in
  *  "git add -a")
  *)
-type opt = MSG | ORIGIN | ALL | HARD | SOFT | SETUPSTREAM | QUIET | VERBOSE
-  | FORCE | DELETE | REMOVE | RENAME | NEWBRANCH | INVALID_OPT of string
+type opt =  MSG | ORIGIN | ALL | SETUPSTREAM | QUIET |  DELETE | REMOVE | RENAME
+  | NEWBRANCH | INVALID_OPT of string
 
 (* This is the type that the user input will be parsed into.  The actual commands
  *  described in the cmd_expr will be executed later in OASys

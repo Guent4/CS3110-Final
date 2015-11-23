@@ -37,12 +37,7 @@ let translate_cmd cmd_string = match cmd_string with
 let translate_opt opt_string = match opt_string with
   | "-m" | "--message"                  -> MSG
   | "-a" | "--all"                      -> ALL
-  | "--hard"                            -> HARD
-  | "--soft"                            -> SOFT
   | "-u" | "--set-upstream"             -> SETUPSTREAM
-  | "-q" | "--quiet"                    -> QUIET
-  | "-v" | "--verbose"                  -> VERBOSE
-  | "-f" | "--force"                    -> FORCE
   | "-d" | "--delete"                   -> DELETE
   | "-rm" | "--remove"                  -> REMOVE
   | "-rn" | "--rename"                  -> RENAME
