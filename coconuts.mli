@@ -19,6 +19,10 @@ type opt
  *)
 type cmd_expr
 
+type config
+
+type feedback
+
 (* The commit id *)
 type id
 
