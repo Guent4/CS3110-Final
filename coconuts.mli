@@ -14,7 +14,7 @@ type arg
 (* All of the possible options that will be supported (i.e "-a" in
  *  "git add -a")
  *)
-type opt = HEAD | MSG | ORIGIN | ALL | HARD | SOFT | INCLUDE | SETUPSTREAM
+type opt = MSG | ORIGIN | ALL | HARD | SOFT | INCLUDE | SETUPSTREAM
   | QUIET | VERBOSE | FORCE | DELETE | RENAME | NEWBRANCH | BRANCHES
   | INVALID_OPT of string
 
