@@ -1,3 +1,5 @@
+open Yojson.Basic.Util
+
 (* Describe which repository, local or remote, that the user is referring to *)
 type host = LOCAL | REMOTE
 
@@ -36,7 +38,7 @@ module StringMap = Map.Make (struct type t = string let compare a b = Pervasives
 type palm_tree = branch StringMap.t
 
 (* JSON used for sending and receiving data. *)
-type json
+type json = Yojson.Basic.json
 
 (* Represents a client request. Contains a command and client information *)
-type request
+type request = {host:string; port:int; data:string; cmd:string}

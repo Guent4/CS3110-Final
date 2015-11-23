@@ -1,2 +1,2 @@
-compile.opam_packages=async,str
+compile.opam_packages=async,str,yojson
 compile.thread=true

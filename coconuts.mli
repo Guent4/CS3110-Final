@@ -1,35 +1,33 @@
 (* Describe which repository, local or remote, that the user is referring to *)
-type host = LOCAL | REMOTE
+type host
 
 (* Commands that OASys can support *)
-type cmd = PUSH | PULL | ADD | COMMIT | BRANCH | CHECKOUT | MERGE | DIFF
-  | STATUS | CONFIG | HELP | CLONE | INIT | LOG | RESET | QUIT
+type cmd
 
 (* A single argument for the command (i.e. "commit message" in
  *  "git commit -m "commit message"", repository name, )
  *)
-type arg = string
+type arg
 
 (* All of the possible options that will be supported (i.e "-a" in
  *  "git add -a")
  *)
-type opt = HEAD | MSG | ORIGIN | ALL | HARD | SOFT | INCLUDE | SETUPSTREAM
-  | QUIET | VERBOSE | FORCE | DELETE | RENAME | NEWBRANCH | BRANCHES
+type opt
 
 (* This is the type that the user input will be parsed into.  The actual commands
  *  described in the cmd_expr will be executed later in OASys
  *)
-type cmd_expr = host * cmd * opt list * arg list
+type cmd_expr
 
 (* The commit id *)
-type id = string
+type id
 
 (* The commit message *)
-type msg = string
+type msg
 
-type node = Commit of id * msg | Add
+type node
 
-type branch = node list
+type branch
 
 type palm_tree
 
@@ -37,4 +35,4 @@ type palm_tree
 type json
 
 (* Represents a client request. Contains a command and client information *)
-type request = {host:string; port:int; data:string; cmd:string}
+type request

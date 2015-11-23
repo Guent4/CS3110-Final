@@ -4,7 +4,7 @@ open Core.Std (*In_channel and Out_channel modules*)
 (**
  * [read filename] simulates an In_channel that reads the lines from [filename].
  *)
-val read_lst : string -> string list
+val read_list : string -> string list
 
 (**
  * [write filename lines] simulates an Out_channel that "overwrites" the

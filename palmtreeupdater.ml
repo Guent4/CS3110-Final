@@ -7,3 +7,5 @@ let update_tree (cmd:cmd_expr) (pt:tree_node) : tree_node =
   match cmd with
   | (_,INIT,_,_) -> Commit (gen_hash (), "initial commit")
   | _ -> failwith "not implemented" *)
+
+let update_tree cmd tree branch = failwith "Not implemented"
