@@ -24,6 +24,10 @@ type opt =  MSG | ORIGIN | ALL | HARD | SOFT | SETUPSTREAM | QUIET | VERBOSE
  *)
 type cmd_expr = host * cmd * opt list * arg list
 
+type config = {repo_dir:string; branch_name:string}
+
+type feedback = SUCCESS of string | FAILURE of string
+
 (* The commit id *)
 type id = string
 

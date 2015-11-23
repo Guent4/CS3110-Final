@@ -22,6 +22,10 @@ type opt = MSG | ORIGIN | ALL | HARD | SOFT | SETUPSTREAM | QUIET | VERBOSE
  *)
 type cmd_expr = host * cmd * opt list * arg list
 
+type config
+
+type feedback
+
 (* The commit id *)
 type id
 
