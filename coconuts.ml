@@ -8,10 +8,8 @@ type cmd = PUSH | PULL | ADD | COMMIT | BRANCH | CHECKOUT | MERGE | DIFF
   | STATUS | CONFIG | HELP | CLONE | INIT | LOG | RESET | QUIT
   | INVALID_CMD of string
 
-(* A single argument for the command (i.e. "commit message" in
- *  "git commit -m "commit message"", repository name, )
- *)
-type arg = string
+
+type arg = WORD of string | SENTENCE of string | INVALID_ARG of string
 
 (* All of the possible options that will be supported (i.e "-a" in
  *  "git add -a")
