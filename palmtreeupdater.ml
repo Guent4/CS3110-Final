@@ -121,7 +121,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
                 (* update tree *)
                 let tree' = PalmTree.add current_branch branch' tree in
                 (* return *)
-                (tree', config, Success "")
+                (tree', config, Success (file_name ^ " added") )
             )
 
           | _ -> assert false
@@ -161,7 +161,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
                 (* update tree *)
                 let tree' = PalmTree.add current_branch branch' tree in
                 (* return *)
-                (tree', config, Success "")
+                (tree', config, Success (file_name ^ " marked for removal"))
             )
           | _ -> assert false
         )
@@ -216,7 +216,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
         let can_commit = max (List.length added) (List.length removed) > 0 in
         (
           match can_commit with
-          | false -> (tree, config, Failure "")
+          | false -> (tree, config, Failure "no files added or marked for removal")
           | true ->
 
             (* ==== PREPARATION ==== *)
@@ -230,11 +230,12 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
 
             (* ==== FILE IO ==== *)
 
-            (* create directory with id *)
-            let commit_dir = (id ^ "/") in
-            let () = create_dir commit_dir in
+            (* create directory for commit *)
+            let commit_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
+            let () = create_dir (repo_dir ^ oasys_dir ^ id ^ "/") in
+
             (* copy files from added to oasys/id/ *)
-            let () = List.iter (fun x -> file_copy x (oasys_dir ^ commit_dir)) committed in
+            let () = List.iter (fun x -> file_copy (repo_dir ^ x) commit_dir) committed in
             (* copy files from commited to oasys/id/ *)
 
             (* ==== TREE MANAGEMENT ==== *)
@@ -248,8 +249,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
             (* update tree *)
             let tree' = PalmTree.add current_branch branch' tree in
             (* return *)
-            (tree', config, Success "repository initialized")
-
+            (tree', config, Success ("committed: " ^ current_branch ^ " " ^ id ^ "\nmessage: " ^ message))
         )
       | _ -> assert false
     )
