@@ -13,6 +13,9 @@ let get_config config =
   let branch_alias = config.current_branch in
   (repo_dir,branch_alias)
 
+let handle_request (cmd,data) = failwith "unimplemented"
+
+(*   let cur_branch = StringMap.find branch tree in *)
 let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * config * feedback =
   (* get repo_dir and branch_alias from config *)
   let (repo_dir, branch_alias) = get_config config in
