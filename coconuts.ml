@@ -5,7 +5,7 @@ type host = LOCAL | REMOTE
 
 (* Commands that OASys can support *)
 type cmd = PUSH | PULL | ADD | COMMIT | BRANCH | CHECKOUT | MERGE | DIFF
-  | STATUS | CONFIG | HELP | CLONE | INIT | LOG | RESET | QUIT
+  | STATUS | CONFIG | HELP | CLONE | INIT | LOG | RESET | QUIT | REMOVE
   | INVALID_CMD of string
 
 (* A single argument for the command (i.e. "commit message" in
@@ -36,7 +36,13 @@ type id = string
 (* The commit message *)
 type msg = string
 
-type node = Commit of id * msg | Add
+type added = string list
+
+type deleted = string list
+
+type committed = string list
+
+type node = Commit of id * msg | Changes of added * deleted * committed
 
 type branch = node list
 

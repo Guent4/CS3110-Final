@@ -13,3 +13,5 @@
 let cmd = (LOCAL,INIT,[],[]);;
 let tree = PalmTree.empty;;
 let config = {repo_dir= "./test_proj/"; current_branch= "master"}
+
+let cmd = ()
