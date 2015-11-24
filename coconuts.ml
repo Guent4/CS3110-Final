@@ -54,4 +54,4 @@ type palm_tree = branch PalmTree.t
 type json = Yojson.Basic.json
 
 (* Represents a client request. Contains a command and client information *)
-type request = {host:string; port:int; data:string; cmd:string}
+type client_req = {host:string; port:int; data:string; cmd:string}

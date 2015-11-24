@@ -32,6 +32,9 @@ let commit_changes added removed committed =
   let committed'' = List.fold_left (fun a x -> if (not (List.mem x committed)) then x :: a else a) committed' added in
   committed''
 
+let handle_request (cmd,data) = failwith "unimplemented"
+
+(*   let cur_branch = StringMap.find branch tree in *)
 let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * config * feedback =
   (* get repo_dir and branch_current from config *)
   let (repo_dir, current_branch) = get_config config in
