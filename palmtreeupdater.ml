@@ -10,6 +10,8 @@ let file_exists path =
 
 let update_tree cmd tree config = failwith "unimplemented"
 
+let handle_request (cmd,data) = failwith "unimplemented"
+
 (*   let cur_branch = StringMap.find branch tree in
   match cmd with
   | (_,INIT,_,_) ->
