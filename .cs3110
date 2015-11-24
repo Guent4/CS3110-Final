@@ -1,2 +1,2 @@
-compile.opam_packages=async,str,yojson,fileutils
+compile.opam_packages=async,str,yojson,fileutils,cohttp,cohttp.async
 compile.thread=true
