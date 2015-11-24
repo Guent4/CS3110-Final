@@ -8,7 +8,7 @@ let gen_hash() = string_of_int (hash (Unix.gettimeofday()))
 let file_exists path =
   FileUtil.find FileUtil.Exists path (fun a x -> true || a) false
 
-let file_copy file_name target_dir =
+let copy_file file_name target_dir =
   FileUtil.cp [file_name] target_dir
 
 let get_config config =
@@ -19,22 +19,16 @@ let get_config config =
 let create_dir dir =
   FileUtil.mkdir dir
 
-let empty_dir dir =
-  FileUtil.rm ~force:FileUtil.Force ~recurse:true [(dir ^ "*")]
-
 let to_string commits =
   match commits with
   | Changes(_,_,_) -> ""
   | Commit(id,msg) -> "====\nCommit " ^ id ^ "\n" ^ msg ^ "\n===="
 
-let copy files source_dir target_dir =
-  failwith "unimplemented"
-
 let remove_from_list l x =
   List.filter (fun x' -> x' <> x) l
 
 let commit_changes added removed committed =
-  let committed' = List.filter (fun x -> List.mem x removed) committed in
+  let committed' = List.filter (fun x -> not (List.mem x removed)) committed in
   let committed'' = List.fold_left (fun a x -> if (not (List.mem x committed)) then x :: a else a) committed' added in
   committed''
 
@@ -127,7 +121,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
           | _ -> assert false
         )
     )
-  | (_,REMOVE,_,[file_name]) ->
+  | (_,RM,_,[file_name]) ->
     (* check if file exists *)
     let exists = file_exists (repo_dir ^ file_name) in
     (
@@ -150,8 +144,8 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
             (* ==== TREE MANAGEMENT ==== *)
 
             (
-              match (List.mem file_name committed && List.mem file_name added && not (List.mem file_name removed)) with
-              | false -> (tree, config, Failure "")
+              match (List.mem file_name committed && not (List.mem file_name removed)) with
+              | false -> (tree, config, Failure (file_name ^ " has never been committed"))
               | true ->
                 (* build node *)
                 let removed' = file_name :: removed in
@@ -234,9 +228,8 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
             let commit_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
             let () = create_dir (repo_dir ^ oasys_dir ^ id ^ "/") in
 
-            (* copy files from added to oasys/id/ *)
-            let () = List.iter (fun x -> file_copy (repo_dir ^ x) commit_dir) committed in
-            (* copy files from commited to oasys/id/ *)
+            (* copy files from committed to oasys/id/ *)
+            let () = List.iter (fun x -> copy_file (repo_dir ^ x) commit_dir) committed in
 
             (* ==== TREE MANAGEMENT ==== *)
 
@@ -245,7 +238,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
             (* build node *)
             let changes = Changes(added, removed, committed) in
             (* build branch *)
-            let branch' = changes :: commit :: branch in
+            let branch' = changes :: commit :: prev_commits in
             (* update tree *)
             let tree' = PalmTree.add current_branch branch' tree in
             (* return *)
@@ -256,8 +249,46 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
   | (_,LOG,_,_) ->
     (* get current branch *)
     let branch = PalmTree.find current_branch tree in
-    (* iter through branch and add to_string of each node *)
+    (* iter through branch and add the to_string of each node to an accumulator *)
     let log_result = List.fold_left (fun a x -> a ^ (to_string x ^ "\n")) "" branch in
     (tree, config, Success log_result)
-  | (_,STATUS,_,_) -> failwith "unimplemented"
+  | (_,BRANCH,_,[]) ->
+    (* pull out key value pairs of palm tree and append key to an accumulator*)
+    let result = PalmTree.fold (fun k _ a -> a ^ "\n" ^ if (k = current_branch) then "*"^k else k) tree "" in
+    (tree, config, Success result)
+  | (_,BRANCH,_,[name]) ->
+    (* get current branch *)
+    let branch = PalmTree.find current_branch tree in
+    (
+      (* assert branch invariant *)
+      match branch with
+      | Changes(added, removed, committed) :: prev_commits ->
+        (* create new branch in tree *)
+        let branch' = Changes([], [], committed) :: prev_commits in
+        let tree' = PalmTree.add name branch' tree in
+        (tree', config, Success ("created branch " ^ name))
+      | _ -> assert false
+    )
+  | (_,CHECKOUT,_,[name]) ->
+    let branch = PalmTree.find current_branch tree in
+    (
+      match branch with
+      | Changes(added, removed, committed) :: prev_commits ->
+        (
+          (* ensure that a checkout should not happen if there are uncommitted
+          changes *)
+          match added, removed with
+          | [],[] ->
+            (* create new branch *)
+            let branch' = Changes([], [], committed) :: prev_commits in
+            (* update tree with new branch *)
+            let tree' = PalmTree.add name branch' tree in
+            (* set current branch to new branch *)
+            let config' = {config with current_branch = name} in
+            (* return *)
+            (tree', config', Success ("checked out branch " ^ name))
+          | _ -> (tree, config, Failure "cannot checkout a new branch until all changes have been committed")
+        )
+      | _ -> assert false
+    )
   | _ -> failwith "unimplemented"

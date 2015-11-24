@@ -5,7 +5,7 @@ type host = LOCAL | REMOTE
 
 (* Commands that OASys can support *)
 type cmd = PUSH | PULL | ADD | COMMIT | BRANCH | CHECKOUT | MERGE | DIFF
-  | STATUS | CONFIG | HELP | CLONE | INIT | LOG | RESET | QUIT | REMOVE
+  | STATUS | CONFIG | HELP | CLONE | INIT | LOG | RESET | QUIT | RM
   | INVALID_CMD of string
 
 (* A single argument for the command (i.e. "commit message" in

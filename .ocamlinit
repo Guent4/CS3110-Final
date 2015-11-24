@@ -23,3 +23,9 @@ let (tree,config,feedback) = update_tree cmd tree config;;
 
 let cmd = (LOCAL,COMMIT,[],["added wuggle.txt"]);;
 let (tree,config,feedback) = update_tree cmd tree config;;
+
+let cmd = (LOCAL,RM,[],["wuggle.txt"]);;
+let (tree,config,feedback) = update_tree cmd tree config;;
+
+let cmd = (LOCAL,COMMIT,[],["removed wuggle.txt"]);;
+let (tree,config,feedback) = update_tree cmd tree config;;
