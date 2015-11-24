@@ -15,6 +15,24 @@ let lex s =
   let whitespace = "[" ^ whitespace_char_string ^ "]+" in
   Str.split (Str.regexp whitespace) s
 
+let valid_opt cmd = match cmd with
+  | PUSH -> []
+  | PULL -> []
+  | ADD -> []
+  | COMMIT -> []
+  | BRANCH -> []
+  | CHECKOUT -> []
+  | MERGE -> []
+  | DIFF -> []
+  | STATUS -> []
+  | CONFIG -> []
+  | HELP -> []
+  | CLONE -> []
+  | INIT -> []
+  | LOG -> []
+  | RESET -> []
+  | _ -> failwith "Should've already filtered out this option."
+
 let translate_cmd cmd_string = match cmd_string with
   | "push" -> PUSH
   | "pull" -> PULL
@@ -36,7 +54,7 @@ let translate_cmd cmd_string = match cmd_string with
 
 let translate_opt opt_string = match opt_string with
   | "-m" | "--message"                  -> MSG
-  | "-a" | "--all"                      -> ALL
+  | "-a" | "--all" | "."                -> ALL
   | "-u" | "--set-upstream"             -> SETUPSTREAM
   | "-d" | "--delete"                   -> DELETE
   | "-rm" | "--remove"                  -> REMOVE
@@ -61,12 +79,12 @@ let parse_opt cmd_string opt_list : opt list * string list =
   let rec parse_opt_rec cmd_string cmd_list acc =
     match cmd_list with
     | [] -> (acc, cmd_list)
-    | h::t ->
-      if (check_if_start_with h 45) then
+    | h::t -> (
+      if ((check_if_start_with h 45) || (check_if_start_with h 46)) then
         let acc = acc@[translate_opt h] in
         parse_opt_rec cmd_string t acc
       else
-        (acc, cmd_list) in
+        (acc, cmd_list)) in
   parse_opt_rec cmd_string opt_list []
 
 let parse_sentence arg_list : arg * string list =
@@ -100,8 +118,7 @@ let print_args args =
   ) args
 
 let check_cmd_expr cmd_string (h:host) (c:cmd) (o:opt list) (a:arg list) : cmd_expr option =
-  (* Printf.printf "%i\n" (List.length a);
-  print_args a; *)
+  (* let valid_opt_list = valid_opt c in *)
   Some (h,c,o,a)
 
 let parse cmd_string cmd_list : cmd_expr option = match cmd_list with
