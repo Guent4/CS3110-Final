@@ -9,7 +9,7 @@ val read : unit -> string
 val interpret: string -> cmd_expr option
 
 (* Performs the read function and then pipe output into interpret function *)
-val read_interpret : unit -> cmd_expr option
+val read_interpret : unit -> cmd_expr
 
 (* Responsible for taking a string and printing it to the REPL *)
-val output: string -> unit
+val output: feedback -> unit
