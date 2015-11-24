@@ -127,12 +127,16 @@ let check_opt_arg (cmd_string:string) (h:host) (c:cmd) (o:opt list) (a:arg list)
     | f::[] -> (match f with
       | INVALID_OPT x -> Printf.printf "FAILURE: \"%s\" is an invalid option\n" x; None
       | _ -> Some (h, c, o, a))
-    | f::r -> Printf.printf "FAILURE: The %s command does not support more than 1 option.\n" (detranslate_cmd c); None
+    | f::r -> Printf.printf "FAILURE: The \"%s\" command does not support more than 1 option.\n" (detranslate_cmd c); None
 
 let check_cmd_expr (cmd_string:string) (h:host) (c:cmd) (o:opt list) (a:arg list) : cmd_expr option =
   match c with
   | INVALID_CMD x -> Printf.printf "FAILURE: Invalid command given: \"%s\".\n" x; None
   | _ -> check_opt_arg cmd_string h c o a
+
+let rec read () : string =
+  Printf.printf ">>> OASys ";
+  (String.trim (read_line()))
 
 let parse (cmd_string:string) (cmd_list:string list) : cmd_expr option =
   match cmd_list with
@@ -142,11 +146,6 @@ let parse (cmd_string:string) (cmd_list:string list) : cmd_expr option =
     let (opts,arg_list) = parse_opt cmd_string opt_list in
     let args = parse_arg cmd_string arg_list in
     check_cmd_expr cmd_string LOCAL cmd opts args
-
-let rec read () : string =
-  Printf.printf ">>> OASys ";
-  (String.trim (read_line()))
-
 
 let interpret (input:string) : cmd_expr option =
   let lexed = lex input in
