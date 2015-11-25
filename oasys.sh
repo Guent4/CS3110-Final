@@ -1,5 +1,4 @@
 #!/bin/bash
-# My first script
 
 types=""
 
