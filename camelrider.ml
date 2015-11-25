@@ -3,23 +3,13 @@ open Core.Std
 open Async.Std
 open Cohttp_async
 
+module Code = Cohttp.Code
 module Request = Cohttp.Request
 module Response = Cohttp.Response
 module Server = Cohttp_async.Server
 
 (* Ref containing server handle *)
 let server = ref(Ivar.create())
-
-let handle_body (body : string) : Server.response Deferred.t =
-  failwith "unimplemented"
-  (* Server.respond_with_string
-    (sprintf "The next number is: %d\n" (1 + Int.of_string body)) *)
-
-let cat_chunks (body : string Pipe.Reader.t) : string Deferred.t =
-  Pipe.fold body ~init:"" ~f:(fun x y -> return (x ^ y))
-
-(* Takes in an http request, manipulates data based on the request, and returns
- * an http response *)
 
 (*         Cohttp_async.Body.t =
            [ `Empty
@@ -36,14 +26,20 @@ let handle_request ~(body)
             | None -> "NO COMMAND" in
   match request.meth with
     | `GET -> if cmd = "VERIFY" then
-                failwith "unimplemented"
+                match Palmtreeupdater.handle_request (cmd,None) with
+                | (true,_) -> Server.respond (Code.status_of_code 200)
+                | _ -> Server.respond (Code.status_of_code 401)
               else if cmd = "PULL" then
-                failwith "unimplemented"
+                match Palmtreeupdater.handle_request (cmd,None) with
+                | (true,Some data) -> Server.respond_with_string data
+                | _ -> Server.respond (Code.status_of_code 400)
               else
                 Server.respond_with_string "" ~code: `Bad_request
-                (*Server.respond OASys.handle_request REQ body *)
     | `POST ->  if cmd = "POST" then
-                  failwith "unimplemented"
+                  Body.to_string body >>= fun body' ->
+                  match Palmtreeupdater.handle_request (cmd,Some body') with
+                  | (true,_) -> Server.respond (Code.status_of_code 200)
+                  | _ -> Server.respond (Code.status_of_code 400)
                 else
                   Server.respond_with_string "" ~code: `Bad_request
     | _ -> Server.respond_with_string "" ~code: `Bad_request

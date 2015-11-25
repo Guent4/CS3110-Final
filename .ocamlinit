@@ -3,6 +3,8 @@
 #require "str";;
 #require "yojson";;
 #require "fileutils";;
+#require "cohttp";;
+#require "cohttp.async";;
 
 #directory "_build";;
 
@@ -10,6 +12,24 @@
 
 #load "palmtreeupdater.d.cmo";;
 #use "palmtreeupdater.ml";;
-let cmd = (LOCAL,INIT,[],[]);;
+
+(*
 let tree = PalmTree.empty;;
-let config = {repo_dir= "./test_proj/"; current_branch= "master"}
+let tree = PalmTree.add "master" [] tree;;
+let config = {repo_dir= "./test_proj/"; current_branch="master"}
+
+let cmd = (LOCAL,INIT,[],[]);;
+let (tree,config,feedback) = update_tree cmd tree config;;
+
+let cmd = (LOCAL,ADD,[],["wuggle.txt"]);;
+let (tree,config,feedback) = update_tree cmd tree config;;
+
+let cmd = (LOCAL,COMMIT,[],["added wuggle.txt"]);;
+let (tree,config,feedback) = update_tree cmd tree config;;
+
+let cmd = (LOCAL,RM,[],["wuggle.txt"]);;
+let (tree,config,feedback) = update_tree cmd tree config;;
+
+let cmd = (LOCAL,COMMIT,[],["removed wuggle.txt"]);;
+let (tree,config,feedback) = update_tree cmd tree config;;
+*)
