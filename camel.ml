@@ -126,17 +126,17 @@ let check_if_end_with (s:string) (n:int) : bool =
   else if (String.get s (String.length s - 1) = Char.chr n) then true
   else false
 
-let parse_opt (cmd_string:string) (opt_list:string list) : opt list * string list =
-  let rec parse_opt_rec cmd_string cmd_list acc =
+let parse_opt (opt_list:string list) : opt list * string list =
+  let rec parse_opt_rec cmd_list acc =
     match cmd_list with
     | [] -> (acc, cmd_list)
     | h::t -> (
       if ((check_if_start_with h 45) || (check_if_start_with h 46)) then
         let acc = acc@[translate_opt h] in
-        parse_opt_rec cmd_string t acc
+        parse_opt_rec t acc
       else
         (acc, cmd_list)) in
-  parse_opt_rec cmd_string opt_list []
+  parse_opt_rec opt_list []
 
 let parse_sentence (arg_list:string list) : arg_t * string list =
   let rec parse_sentence_rec arg_list acc = match arg_list with
@@ -146,20 +146,20 @@ let parse_sentence (arg_list:string list) : arg_t * string list =
       else parse_sentence_rec t (acc^" "^h) in
   parse_sentence_rec arg_list ""
 
-let parse_arg (cmd_string:string) (arg_list: string list) : arg_t list =
-  let rec parse_arg_rec cmd_string arg_list acc =
+let parse_arg (arg_list: string list) : arg_t list =
+  let rec parse_arg_rec arg_list acc =
   match arg_list with
   | [] -> acc
   | h::t ->
     if (check_if_start_with h 34) then
       let (sent,rest_of_arg_list) = parse_sentence arg_list in
       let newacc = acc@[sent] in
-      parse_arg_rec cmd_string rest_of_arg_list newacc
+      parse_arg_rec rest_of_arg_list newacc
     else (
       let newacc = acc@[(WORD h)] in
-      parse_arg_rec cmd_string t newacc)
+      parse_arg_rec t newacc)
   in
-  parse_arg_rec cmd_string arg_list []
+  parse_arg_rec arg_list []
 
 let print_args args =
   List.iter (fun x -> match x with
@@ -190,7 +190,7 @@ let get_string_num_opts (os:int list) : string =
     else List.fold_left (fun acc x -> acc ^ " " ^ string_of_int x) "" os in
   String.sub with_space_in_front 1 (String.length with_space_in_front - 1)
 
-let check_args (cmd_string:string) (c:cmd) (o:opt list) (a:arg_t list) : cmd_expr option =
+let check_args (c:cmd) (o:opt list) (a:arg_t list) : cmd_expr option =
   match o with
   | [] -> failwith "No option given"
   | f::e -> (
@@ -214,37 +214,37 @@ let check_args (cmd_string:string) (c:cmd) (o:opt list) (a:arg_t list) : cmd_exp
           Some (c,o,args))))
     else (print_error 5 ~s1:(detranslate_opt f) ~s2:(detranslate_cmd c); None))
 
-let check_opt (cmd_string:string) (c:cmd) (o:opt list) (a:arg_t list) : cmd_expr option =
+let check_opt (c:cmd) (o:opt list) (a:arg_t list) : cmd_expr option =
   match o with
-    | [] -> check_args cmd_string c [EMPTY] a
+    | [] -> check_args c [EMPTY] a
     | f::[] -> (match f with
       | INVALID_OPT x -> print_error 1 ~s1:x; None
-      | _ -> check_args cmd_string c o a
+      | _ -> check_args c o a
       )
     | f::r -> print_error 2 ~s1:(detranslate_cmd c); None
 
-let check_cmd_expr_t (cmd_string:string) (c:cmd) (o:opt list) (a:arg_t list) : cmd_expr option =
+let check_cmd_expr_t (c:cmd) (o:opt list) (a:arg_t list) : cmd_expr option =
   match c with
   | INVALID_CMD x -> print_error 4 ~s1:x; None
-  | _ -> check_opt cmd_string c o a
+  | _ -> check_opt c o a
 
 let rec read () : string =
   Printf.printf ">>> OASys ";
   (String.trim (read_line()))
 
-let parse (cmd_string:string) (cmd_list:string list) : cmd_expr option =
+let parse (cmd_list:string list) : cmd_expr option =
   match cmd_list with
   | [] -> None
   | cmd_elmt::opt_list ->
     let cmd = parse_cmd cmd_elmt in
-    let (opts,arg_list) = parse_opt cmd_string opt_list in
-    let args = parse_arg cmd_string arg_list in
-    check_cmd_expr_t cmd_string cmd opts args
+    let (opts,arg_list) = parse_opt opt_list in
+    let args = parse_arg arg_list in
+    check_cmd_expr_t cmd opts args
 
 let interpret (input:string) : cmd_expr option =
   let lexed = lex input in
   (* List.iter (fun x -> Printf.printf "%s\n" x) lexed; *)
-  parse input lexed
+  parse lexed
 
 let rec read_interpret () : cmd_expr =
   match interpret (read ()) with
