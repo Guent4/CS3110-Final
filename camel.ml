@@ -142,7 +142,7 @@ let parse_sentence (arg_list:string list) : arg_t * string list =
   let rec parse_sentence_rec arg_list acc = match arg_list with
     | [] -> (INVALID_ARG, [])
     | h::t ->
-      if (check_if_end_with h 34) then (SENTENCE (String.trim (acc^" "^h)), t)
+      if (check_if_end_with h 37) then (SENTENCE (String.trim (acc^" "^h)), t)
       else parse_sentence_rec t (acc^" "^h) in
   parse_sentence_rec arg_list ""
 
@@ -151,7 +151,7 @@ let parse_arg (arg_list: string list) : arg_t list =
   match arg_list with
   | [] -> acc
   | h::t ->
-    if (check_if_start_with h 34) then
+    if (check_if_start_with h 37) then
       let (sent,rest_of_arg_list) = parse_sentence arg_list in
       let newacc = acc@[sent] in
       parse_arg_rec rest_of_arg_list newacc
@@ -228,11 +228,13 @@ let check_cmd_expr_t (c:cmd) (o:opt list) (a:arg_t list) : cmd_expr option =
   | INVALID_CMD x -> print_error 4 ~s1:x; None
   | _ -> check_opt c o a
 
-let rec read () : string =
-  Printf.printf ">>> OASys ";
-  (String.trim (read_line()))
+let rec read () : string list  =
+  List.iter (fun x -> print_endline x) (Array.to_list Sys.argv);
+  match Array.to_list Sys.argv with
+  | [] -> exit 0
+  | h::t -> t
 
-let parse (cmd_list:string list) : cmd_expr option =
+let interpret (cmd_list:string list) : cmd_expr option =
   match cmd_list with
   | [] -> None
   | cmd_elmt::opt_list ->
@@ -241,14 +243,9 @@ let parse (cmd_list:string list) : cmd_expr option =
     let args = parse_arg arg_list in
     check_cmd_expr_t cmd opts args
 
-let interpret (input:string) : cmd_expr option =
-  let lexed = lex input in
-  (* List.iter (fun x -> Printf.printf "%s\n" x) lexed; *)
-  parse lexed
-
 let rec read_interpret () : cmd_expr =
   match interpret (read ()) with
-  | None -> read_interpret ()
+  | None -> exit 0
   | Some x -> x
 
 let output x =
