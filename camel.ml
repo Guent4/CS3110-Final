@@ -166,8 +166,8 @@ let parse_opt (c:cmd) (opt_list:string list) : opt list * string list =
       if (List.length acc = 0) then ([EMPTY], opt_list)
       else (acc, opt_list))
     | h::t -> (
-      if ((check_if_start_with h 45) || (check_if_start_with h 46)) then
-        let acc = acc@[translate_opt h] in
+      if ((check_if_start_with h 37) || (check_if_start_with h 46)) then
+        let acc = acc@[translate_opt (String.sub h 1 (String.length h - 1))] in
         parse_opt_rec t acc
       else (
         if (List.length acc = 0) then ([EMPTY], opt_list)
@@ -220,11 +220,7 @@ let rec read () : string list  =
   (* List.iter (fun x -> print_endline x) (Array.to_list Sys.argv); *)
   match Array.to_list Sys.argv with
   | [] -> exit 0
-  | h::[] -> exit 0
-  | f::s::[] -> (
-    let lexed = lex s in
-    (* (List.iter (fun x -> print_endline x) lexed);  *)lexed)
-  | _ -> print_error 0; exit 0
+  | h::t -> t
 
 let interpret (cmd_list:string list) : cmd_expr option =
   match cmd_list with
@@ -238,7 +234,7 @@ let interpret (cmd_list:string list) : cmd_expr option =
 let rec read_interpret () : cmd_expr =
   match interpret (read ()) with
   | None -> exit 0
-  | Some x -> x
+  | Some x -> Printf.printf "Success!!!\n"; x
 
 let output x =
   match x with
