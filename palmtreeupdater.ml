@@ -40,7 +40,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
   let (repo_dir, current_branch) = get_config config in
   (* determine which command *)
   match cmd with
-  | (_,INIT,_,_) ->
+  | (INIT,_,_) ->
     (* check if .oasys already exists *)
     let exists = file_exists (repo_dir ^ oasys_dir) in
     (
@@ -84,7 +84,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
           | _ -> assert false
         )
     )
-  | (_,ADD,_,[file_name]) ->
+  | (ADD,_,[file_name]) ->
     (* check if file exists *)
     let exists = file_exists (repo_dir ^ file_name) in
     (
@@ -124,7 +124,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
           | _ -> assert false
         )
     )
-  | (_,RM,_,[file_name]) ->
+  | (RM,_,[file_name]) ->
     (* check if file exists *)
     let exists = file_exists (repo_dir ^ file_name) in
     (
@@ -163,7 +163,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
           | _ -> assert false
         )
     )
-  | (_,RESET,_,[file_name]) ->
+  | (RESET,_,[file_name]) ->
     (* check if file exists *)
     let exists = file_exists (repo_dir ^ file_name) in
     (
@@ -202,7 +202,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
           | _ -> assert false
         )
     )
-  | (_,COMMIT,_,[message]) ->
+  | (COMMIT,_,[message]) ->
     (* get branch *)
     let branch = PalmTree.find current_branch tree in
     (* assert branch invariant *)
@@ -249,17 +249,17 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
         )
       | _ -> assert false
     )
-  | (_,LOG,_,_) ->
+  | (LOG,_,_) ->
     (* get current branch *)
     let branch = PalmTree.find current_branch tree in
     (* iter through branch and add the to_string of each node to an accumulator *)
     let log_result = List.fold_left (fun a x -> a ^ (to_string x ^ "\n")) "" branch in
     (tree, config, Success log_result)
-  | (_,BRANCH,_,[]) ->
+  | (BRANCH,_,[]) ->
     (* pull out key value pairs of palm tree and append key to an accumulator*)
     let result = PalmTree.fold (fun k _ a -> a ^ "\n" ^ if (k = current_branch) then "*"^k else k) tree "" in
     (tree, config, Success result)
-  | (_,BRANCH,_,[name]) ->
+  | (BRANCH,_,[name]) ->
     (* get current branch *)
     let branch = PalmTree.find current_branch tree in
     (
@@ -272,7 +272,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
         (tree', config, Success ("created branch " ^ name))
       | _ -> assert false
     )
-  | (_,CHECKOUT,_,[name]) ->
+  | (CHECKOUT,_,[name]) ->
     let branch = PalmTree.find current_branch tree in
     (
       match branch with

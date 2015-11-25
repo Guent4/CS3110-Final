@@ -1,8 +1,5 @@
 open Yojson.Basic.Util
 
-(* Describe which repository, local or remote, that the user is referring to *)
-type host = LOCAL | REMOTE
-
 (* Commands that OASys can support *)
 type cmd = PUSH | PULL | ADD | COMMIT | BRANCH | CHECKOUT | MERGE | DIFF
   | STATUS | CONFIG | HELP | CLONE | INIT | LOG | RESET | RM | QUIT
@@ -19,7 +16,7 @@ type opt =  MSG | ALL | SETUPSTREAM | DELETE | REMOVE | RENAME | BNCH | FILE
 (* This is the type that the user input will be parsed into.  The actual commands
  *  described in the cmd_expr will be executed later in OASys
  *)
-type cmd_expr = host * cmd * opt list * arg list
+type cmd_expr = cmd * opt list * arg list
 
 type file_path = string
 

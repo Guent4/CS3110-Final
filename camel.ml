@@ -3,7 +3,7 @@ open Coconuts
 
 type arg_t = WORD of string | SENTENCE of string | INVALID_ARG
 
-type cmd_expr_t = host * cmd * opt list * arg_t list
+type cmd_expr_t = cmd * opt list * arg_t list
 
 let lex (s:string) : string list =
   let whitespace_char_string = String.concat "+"
@@ -190,7 +190,7 @@ let get_string_num_opts (os:int list) : string =
     else List.fold_left (fun acc x -> acc ^ " " ^ string_of_int x) "" os in
   String.sub with_space_in_front 1 (String.length with_space_in_front - 1)
 
-let check_args (cmd_string:string) (h:host) (c:cmd) (o:opt list) (a:arg_t list) : cmd_expr option =
+let check_args (cmd_string:string) (c:cmd) (o:opt list) (a:arg_t list) : cmd_expr option =
   match o with
   | [] -> failwith "No option given"
   | f::e -> (
@@ -211,22 +211,22 @@ let check_args (cmd_string:string) (h:host) (c:cmd) (o:opt list) (a:arg_t list) 
             | SENTENCE x -> acc@[x]
             | INVALID_ARG -> failwith "INVALID_ARG should've been sorted out already"
           ) [] a in
-          Some (h,c,o,args))))
+          Some (c,o,args))))
     else (print_error 5 ~s1:(detranslate_opt f) ~s2:(detranslate_cmd c); None))
 
-let check_opt (cmd_string:string) (h:host) (c:cmd) (o:opt list) (a:arg_t list) : cmd_expr option =
+let check_opt (cmd_string:string) (c:cmd) (o:opt list) (a:arg_t list) : cmd_expr option =
   match o with
-    | [] -> check_args cmd_string h c [EMPTY] a
+    | [] -> check_args cmd_string c [EMPTY] a
     | f::[] -> (match f with
       | INVALID_OPT x -> print_error 1 ~s1:x; None
-      | _ -> check_args cmd_string h c o a
+      | _ -> check_args cmd_string c o a
       )
     | f::r -> print_error 2 ~s1:(detranslate_cmd c); None
 
-let check_cmd_expr_t (cmd_string:string) (h:host) (c:cmd) (o:opt list) (a:arg_t list) : cmd_expr option =
+let check_cmd_expr_t (cmd_string:string) (c:cmd) (o:opt list) (a:arg_t list) : cmd_expr option =
   match c with
   | INVALID_CMD x -> print_error 4 ~s1:x; None
-  | _ -> check_opt cmd_string h c o a
+  | _ -> check_opt cmd_string c o a
 
 let rec read () : string =
   Printf.printf ">>> OASys ";
@@ -239,7 +239,7 @@ let parse (cmd_string:string) (cmd_list:string list) : cmd_expr option =
     let cmd = parse_cmd cmd_elmt in
     let (opts,arg_list) = parse_opt cmd_string opt_list in
     let args = parse_arg cmd_string arg_list in
-    check_cmd_expr_t cmd_string LOCAL cmd opts args
+    check_cmd_expr_t cmd_string cmd opts args
 
 let interpret (input:string) : cmd_expr option =
   let lexed = lex input in
