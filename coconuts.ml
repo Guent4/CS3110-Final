@@ -8,8 +8,7 @@ type cmd = PUSH | PULL | ADD | COMMIT | BRANCH | CHECKOUT | MERGE | DIFF
   | STATUS | CONFIG | HELP | CLONE | INIT | LOG | RESET | RM | QUIT
   | INVALID_CMD of string
 
-
-type arg = WORD of string | SENTENCE of string | INVALID_ARG of string
+type arg = string
 
 (* All of the possible options that will be supported (i.e "-a" in
  *  "git add -a")
