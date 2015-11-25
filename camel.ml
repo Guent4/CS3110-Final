@@ -17,54 +17,94 @@ let lex (s:string) : string list =
 
 let translate_cmd (cmd_string:string) : cmd =
   match cmd_string with
-  | "push" -> PUSH
-  | "pull" -> PULL
-  | "add" -> ADD
-  | "commit" -> COMMIT
-  | "branch" -> BRANCH
-  | "checkout" -> CHECKOUT
-  | "merge" -> MERGE
-  | "diff" -> DIFF
-  | "status" -> STATUS
-  | "config" -> CONFIG
-  | "help" -> HELP
-  | "clone" -> CLONE
-  | "init" -> INIT
-  | "log" -> LOG
-  | "reset" -> RESET
-  | "quit" -> ignore(exit 0); QUIT
-  | s -> INVALID_CMD s
+  | "init"          -> INIT
+  | "log"           -> LOG
+  | "status"        -> STATUS
+  | "add"           -> ADD
+  | "commit"        -> COMMIT
+  | "branch"        -> BRANCH
+  | "checkout"      -> CHECKOUT
+  | "reset"         -> RESET
+  | "rm"            -> RM
+  | "diff"          -> DIFF
+  | "merge"         -> MERGE
+  | "config"        -> CONFIG
+  | "push"          -> PUSH
+  | "pull"          -> PULL
+  | "clone"         -> CLONE
+  | "help"          -> HELP
+  | "quit"          -> ignore(exit 0); QUIT
+  | s               -> INVALID_CMD s
 
 let detranslate_cmd (cmd:cmd) : string =
   match cmd with
-  | PUSH -> "push"
-  | PULL -> "pull"
-  | ADD -> "add"
-  | COMMIT -> "commit"
-  | BRANCH -> "branch"
-  | CHECKOUT -> "checkout"
-  | MERGE -> "merge"
-  | DIFF -> "diff"
-  | STATUS -> "status"
-  | CONFIG -> "config"
-  | HELP -> "help"
-  | CLONE -> "clone"
-  | INIT -> "init"
-  | LOG -> "log"
-  | RESET -> "reset"
-  | QUIT -> "quit"
-  | INVALID_CMD s -> "s"
+  | INIT            -> "init"
+  | LOG             -> "log"
+  | STATUS          -> "status"
+  | ADD             -> "add"
+  | COMMIT          -> "commit"
+  | BRANCH          -> "branch"
+  | CHECKOUT        -> "checkout"
+  | RESET           -> "reset"
+  | RM              -> "rm"
+  | DIFF            -> "diff"
+  | MERGE           -> "merge"
+  | CONFIG          -> "config"
+  | PUSH            -> "push"
+  | PULL            -> "pull"
+  | CLONE           -> "clone"
+  | HELP            -> "help"
+  | QUIT            -> "quit"
+  | INVALID_CMD s   -> s
 
 let translate_opt (opt_string:string) : opt =
   match opt_string with
-  | "-m" | "--message"                  -> MSG
-  | "-a" | "--all" | "."                -> ALL
-  | "-u" | "--set-upstream"             -> SETUPSTREAM
-  | "-d" | "--delete"                   -> DELETE
-  | "-rm" | "--remove"                  -> REMOVE
-  | "-rn" | "--rename"                  -> RENAME
-  | "-b"                                -> NEWBRANCH
-  | s                                   -> INVALID_OPT s
+  | "-m" | "--message"          -> MSG
+  | "-a" | "--all" | "."        -> ALL
+  | "-u" | "--set-upstream"     -> SETUPSTREAM
+  | "-d" | "--delete"           -> DELETE
+  | "-rm" | "--remove"          -> REMOVE
+  | "-rn" | "--rename"          -> RENAME
+  | "-b"                        -> BNCH
+  | "-f"                        -> FILE
+  | ""                          -> EMPTY
+  | s                           -> INVALID_OPT s
+
+let detranslate_opt (opt:opt) : string =
+  match opt with
+  | MSG             -> "-m or --message"
+  | ALL             -> ". or -a or --all"
+  | SETUPSTREAM     -> "-u or --set-upstream"
+  | DELETE          -> "-d or --delete"
+  | REMOVE          -> "-rm or --remove"
+  | RENAME          -> "-rn or --rename"
+  | BNCH            -> "-b"
+  | FILE            -> "-f"
+  | EMPTY           -> "<no options given>"
+  | INVALID_OPT s   -> "s"
+
+module M = Map.Make (struct type t = (cmd * opt) let compare a b = Pervasives.compare a b end)
+let expected_arg_num_list =
+  [ ((INIT,EMPTY),([0],[0]));
+    ((LOG,EMPTY),([0],[0]));
+    ((STATUS,EMPTY),([0],[0]));
+    ((ADD,EMPTY),([-1],[0]));    ((ADD,ALL),([0],[0]));
+    ((COMMIT,MSG),([0],[1]));
+    ((BRANCH,EMPTY),([1],[0]));
+    ((RESET,EMPTY),([1],[0]));
+    ((RM,BNCH),([-1],[0]));      ((RM,FILE),([-1],[0]))
+  ]
+let expected_arg_num = List.fold_left (fun acc x -> match x with | (x,y) -> M.add x y acc)
+  M.empty expected_arg_num_list
+
+let print_error ?s1:(s1="") ?s2:(s2="") ?i1:(i1=0) ?i2:(i2=0) ?i3:(i3=0) ?i4:(i4=0) = function
+  | 1 -> Printf.printf "FAILURE: \"%s\" is an invalid option.\n" s1
+  | 2 -> Printf.printf "FAILURE: The \"%s\" command does not support more than 1 option.\n" s1
+  | 4 -> Printf.printf "FAILURE: Invalid command given: \"%s\".\n" s1
+  | 5 -> Printf.printf "FAILURE: Option \"%s\" is not supported for \"%s\".\n" s1 s2
+  | 6 -> Printf.printf "FAILURE: No arguments were given when %s word and %s string argument(s) were expected.\n" s1 s2
+  | 7 -> Printf.printf "FAILURE: %i word and %i string argument(s) were given when %s word and %s string argument(s) were expected.\n" i1 i2 s1 s2
+  | _ -> Printf.printf "\n"
 
 let parse_cmd (cmd_elmt:string) : cmd =
   translate_cmd cmd_elmt
@@ -121,18 +161,47 @@ let print_args args =
     | INVALID_ARG _ -> print_endline "Invalid arg"
   ) args
 
-let check_opt_arg (cmd_string:string) (h:host) (c:cmd) (o:opt list) (a:arg list) : cmd_expr option =
+let get_word_sent_num (a:arg list) : int * int =
+  let w = List.fold_left (fun acc x -> match x with | WORD _ -> acc + 1 | _ -> acc) 0 a in
+  let s = (List.length a) - w in
+  (w,s)
+
+let get_string_num_opts (os:int list) : string =
+  let with_space_in_front =
+    if (List.mem (-2) os) then " any number of"
+    else if (List.mem (-1) os) then " one or more"
+    else List.fold_left (fun acc x -> acc ^ " " ^ string_of_int x) "" os in
+  String.sub with_space_in_front 1 (String.length with_space_in_front - 1)
+
+let check_args (cmd_string:string) (h:host) (c:cmd) (o:opt list) (a:arg list) : cmd_expr option =
   match o with
-    | [] -> Some (h, c, o, a)
+  | [] -> failwith "No option given"
+  | f::e -> (
+    if (M.mem (c,f) expected_arg_num) then
+      let (e_ws,e_ss) = M.find (c,f) expected_arg_num in
+      let (a_w,a_s) = get_word_sent_num a in
+      let expected_num_w = get_string_num_opts e_ws in
+      let expected_num_s = get_string_num_opts e_ss in
+      (if (((List.mem (-1) e_ws) && (a_w = 0)) || ((List.mem (-1) e_ss) && (a_s = 0)))
+        then (print_error 6 ~s1:expected_num_w ~s2:expected_num_s; None)
+      else if (not ((List.mem (-1) e_ws || List.mem a_w e_ws) && (List.mem (-1) e_ss || List.mem a_s e_ss)))
+        then (print_error 7 ~i1:a_w ~i2:a_s ~s1:expected_num_w ~s2:expected_num_s; None)
+      else Some (h,c,o,a))
+    else (print_error 5 ~s1:(detranslate_opt f) ~s2:(detranslate_cmd c); None))
+
+let check_opt (cmd_string:string) (h:host) (c:cmd) (o:opt list) (a:arg list) : cmd_expr option =
+  match o with
+    | [] -> check_args cmd_string h c [EMPTY] a
     | f::[] -> (match f with
-      | INVALID_OPT x -> Printf.printf "FAILURE: \"%s\" is an invalid option\n" x; None
-      | _ -> Some (h, c, o, a))
-    | f::r -> Printf.printf "FAILURE: The \"%s\" command does not support more than 1 option.\n" (detranslate_cmd c); None
+      | INVALID_OPT x -> print_error 1 ~s1:x; None
+      | _ -> check_args cmd_string h c o a
+      )
+    | f::r -> print_error 2 ~s1:(detranslate_cmd c); None
 
 let check_cmd_expr (cmd_string:string) (h:host) (c:cmd) (o:opt list) (a:arg list) : cmd_expr option =
   match c with
-  | INVALID_CMD x -> Printf.printf "FAILURE: Invalid command given: \"%s\".\n" x; None
-  | _ -> check_opt_arg cmd_string h c o a
+  | INVALID_CMD x -> print_error 4 ~s1:x; None
+  | _ -> check_opt cmd_string h c o a
 
 let rec read () : string =
   Printf.printf ">>> OASys ";
