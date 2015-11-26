@@ -30,3 +30,6 @@ let copy_file file_name target_dir =
 
 let create_dir dir =
   FileUtil.mkdir dir
+
+let remove_dir dir =
+  FileUtil.rm ~force:FileUtil.Force ~recurse:true [dir]

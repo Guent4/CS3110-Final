@@ -2,6 +2,7 @@ open Coconuts
 open Palmtreeupdater
 
 let setup_tree () =
+  let () = Fileio.remove_dir "./test_proj/.oasys/" in
   let tree = PalmTree.empty in
   let tree = PalmTree.add "master" [] tree in
   let config = {repo_dir= "./test_proj/"; current_branch="master"} in
@@ -72,7 +73,7 @@ TEST_MODULE "init tests" = struct
     | _ -> false
   )
 end
-(*
+
 TEST_MODULE "add tests" = struct
   let (tree,config) = setup_tree ()
   let (tree,config,feedback) = init tree config
@@ -95,5 +96,5 @@ TEST_MODULE "add tests" = struct
       | _ -> false
   )
 end
-*)
+
 let () = Pa_ounit_lib.Runtime.summarize ()
