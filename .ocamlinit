@@ -7,16 +7,23 @@
 #require "cohttp.async";;
 
 #directory "_build";;
+#directory "_build/src/types";;
+#directory "_build/src/fileio";;
+#directory "_build/src/camel";;
+#directory "_build/src/camelrider";;
+#directory "_build/src/oasys";;
 
-#load "coconuts.d.cmo";;
+#load "src/types/coconuts.d.cmo";;
+#use "src/types/coconuts.ml";;
 
-#load "palmtreeupdater.d.cmo";;
-#use "palmtreeupdater.ml";;
+#load "src/oasys/palmtreeupdater.d.cmo";;
+#use "src/oasys/palmtreeupdater.ml";;
 
-#load "camelrider.d.cmo";;
-#use "camelrider.ml";;
+#load "src/camelrider/camelrider.d.cmo";;
+#use "src/camelrider/camelrider.ml";;
 
 (*
+
 let tree = PalmTree.empty;;
 let tree = PalmTree.add "master" [] tree;;
 let config = {repo_dir= "./test_proj/"; current_branch="master"}
