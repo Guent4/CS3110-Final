@@ -1,19 +1,8 @@
 open Str
 open Coconuts
 
-let lex (s:string) : string list =
-  let whitespace_char_string = String.concat "+"
-    (List.map (String.make 1)
-       [
-         Char.chr 9;  (* HT *)
-         Char.chr 10; (* LF *)
-         Char.chr 11; (* VT *)
-         Char.chr 12; (* FF *)
-         Char.chr 13; (* CR *)
-         Char.chr 32; (* space *)
-       ]) in
-  let whitespace = "[" ^ whitespace_char_string ^ "]+" in
-  Str.split (Str.regexp whitespace) (String.trim s)
+let cmd_str_list = ["init";"log";"status";"add";"commit";"branch";"checkout";
+  "reset";"rm";"diff";"merge";"config";"push";"pull";"clone";"help";"quit"]
 
 let translate_cmd (cmd_string:string) : cmd =
   match cmd_string with
@@ -57,6 +46,9 @@ let detranslate_cmd (cmd:cmd) : string =
   | QUIT            -> "quit"
   | INVALID_CMD s   -> s
 
+let opt_str_list = ["--message";"--all";"--set-upstream";"--delete";"--remove";
+  "--rename";"--branch";"--file"]
+
 let translate_opt (opt_string:string) : opt =
   match opt_string with
   | "-m" | "--message"          -> MSG
@@ -99,11 +91,56 @@ let expected_arg_num_list =
 let expected_arg_num = List.fold_left (fun acc x -> match x with | (x,y) -> M.add x y acc)
   M.empty expected_arg_num_list
 
+let lex (s:string) : string list =
+  let whitespace_char_string = String.concat "+"
+    (List.map (String.make 1)
+       [
+         Char.chr 9;  (* HT *)
+         Char.chr 10; (* LF *)
+         Char.chr 11; (* VT *)
+         Char.chr 12; (* FF *)
+         Char.chr 13; (* CR *)
+         Char.chr 32; (* space *)
+       ]) in
+  let whitespace = "[" ^ whitespace_char_string ^ "]+" in
+  Str.split (Str.regexp whitespace) (String.trim s)
+
+let calc_lev str1 str2 =
+  let minimum a b c = min (min a b) c in
+  let str1c n = String.get str1 n in
+  let str2c n = String.get str2 n in
+  let x = String.length str1 in
+  let y = String.length str2 in
+  let m = Array.make_matrix (x+1) (y+1) 0 in
+  let rec start_m (i,j) =
+    if (i = x && j = y) then (m.(x).(0) <- x; m.(0).(y) <- y)
+    else if (i = x) then (m.(0).(j) <- j; start_m (i,j+1))
+    else if (j = y) then (m.(i).(0) <- i; start_m (i+1,j))
+    else (m.(i).(0) <- i; m.(0).(j) <- j; start_m (i+1,j+1))
+  in start_m (0,0);
+  for i = 1 to x do
+    for j = 1 to y do
+      let l = (m.(i-1).(j) + 1) in
+      let t = (m.(i).(j-1) + 1) in
+      let d = m.(i-1).(j-1) +
+        match (str1c (i-1)=str2c (j-1)) with true -> 0 | false -> 1 in
+      m.(i).(j) <- minimum l t d
+    done
+  done;
+  (* Array.iter (fun x -> Array.iter (fun y -> Printf.printf "%i\t" y) x; print_endline "") m; *)
+  m.(x).(y)
+
+let print_sugg (input:string) (dict:string list) =
+  let sugg = List.filter (fun x -> calc_lev input x <= 2) dict in
+  if (List.length sugg > 0) then (print_endline "\t Do you happen to mean:";
+      List.iter (fun x -> Printf.printf "\t\t%s\n" x) sugg)
+  else ()
+
 let print_error ?s1:(s1="") ?s2:(s2="") ?i1:(i1=0) ?i2:(i2=0) ?i3:(i3=0) ?i4:(i4=0) = function
-  | 0 -> Printf.printf "FAILURE: Unable to parse input.  \n\t Make sure your entire command is encapsulated in \" \" \n\t and that there are no other occurances of: \".\n"
-  | 1 -> Printf.printf "FAILURE: \"%s\" is an invalid option.\n" s1
+  | 0 -> Printf.printf "FAILURE: Unable to parse input. \n\t Make sure your entire command is encapsulated in \" \" \n\t and that there are no other occurances of: \".\n"
+  | 1 -> Printf.printf "FAILURE: \"%s\" is an invalid option.\n" s1; print_sugg s1 opt_str_list
   | 2 -> Printf.printf "FAILURE: The \"%s\" command does not support more than 1 option.\n" s1
-  | 4 -> Printf.printf "FAILURE: Invalid command given: \"%s\".\n" s1
+  | 4 -> Printf.printf "FAILURE: Invalid command given: \"%s\".\n" s1; print_sugg s1 cmd_str_list
   | 5 -> Printf.printf "FAILURE: Option \"%s\" is not supported for \"%s\".\n" s1 s2
   | 6 -> Printf.printf "FAILURE: No arguments were given when %s argument(s) was expected.\n" s1
   | 7 -> Printf.printf "FAILURE: %i argument(s) were given when %s argument(s) was expected.\n" i1 s1
@@ -126,11 +163,13 @@ let parse_opt (c:cmd) (opt_list:string list) : opt list * string list =
   let rec parse_opt_rec opt_list acc =
     match opt_list with
     | [] -> (
-      if (List.length acc = 0) then ([EMPTY], opt_list)
+      if (List.length acc = 0) then (print_endline "1"; ([EMPTY], opt_list))
       else (acc, opt_list))
     | h::t -> (
-      if ((check_if_start_with h 45) || (check_if_start_with h 46)) then
-        let acc = acc@[translate_opt h] in
+      if (h = ".") then
+        parse_opt_rec t (acc@[(translate_opt h)])
+      else if (String.length h >= 3 && String.sub h 0 2 = "%-") then
+        let acc = acc@[translate_opt (String.sub h 1 (String.length h - 1))] in
         parse_opt_rec t acc
       else (
         if (List.length acc = 0) then ([EMPTY], opt_list)
@@ -183,11 +222,7 @@ let rec read () : string list  =
   (* List.iter (fun x -> print_endline x) (Array.to_list Sys.argv); *)
   match Array.to_list Sys.argv with
   | [] -> exit 0
-  | h::[] -> exit 0
-  | f::s::[] -> (
-    let lexed = lex s in
-    (* (List.iter (fun x -> print_endline x) lexed);  *)lexed)
-  | _ -> print_error 0; exit 0
+  | h::t -> t
 
 let interpret (cmd_list:string list) : cmd_expr option =
   match cmd_list with
@@ -201,7 +236,9 @@ let interpret (cmd_list:string list) : cmd_expr option =
 let rec read_interpret () : cmd_expr =
   match interpret (read ()) with
   | None -> exit 0
-  | Some x -> x
+  | Some (c,(h::[]),a) -> (
+      Printf.printf "%s %s " (detranslate_cmd c) (detranslate_opt h); (c,[h],a))
+  | Some _ -> failwith "other"
 
 let output x =
   match x with
