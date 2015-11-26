@@ -39,7 +39,7 @@ TEST_MODULE "init tests" = struct
   TEST_UNIT "test feedbacK" = assert
   (
     match feedback with
-    | Success "repository initialized" -> true
+    | Success "a new oasys repository has been initialized" -> true
     | _ -> false
   )
   let (tree'',config'',feedback) = init tree' config'
@@ -58,7 +58,7 @@ TEST_MODULE "init tests" = struct
   TEST_UNIT "test feedbacK (x2)" = assert
   (
     match feedback with
-    | Failure "repository already exists" -> true
+    | Failure "an oasys repository already exists in this directory" -> true
     | _ -> false
   )
 end
@@ -81,7 +81,7 @@ TEST_MODULE "add tests" = struct
   TEST_UNIT "test feedback" = assert
   (
       match feedback with
-      | Success "wuggle.txt added" -> true
+      | Success "wuggle.txt has been added" -> true
       | _ -> false
   )
   let (tree'',config'',feedback) = add tree' config' "wuggle.txt"
@@ -99,7 +99,7 @@ TEST_MODULE "add tests" = struct
   TEST_UNIT "test feedback (x2)" = assert
   (
       match feedback with
-      | Success "wuggle.txt added" -> true
+      | Success "wuggle.txt has been added" -> true
       | Success x | Failure x ->
       (let () = Printf.printf "\n%s\n" x in
       false)

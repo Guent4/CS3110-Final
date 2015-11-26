@@ -14,6 +14,7 @@
 #directory "_build/src/oasys";;
 
 #load "src/util/fileio.d.cmo";;
+#load "src/util/feedback.d.cmo";;
 #load "src/util/listops.d.cmo";;
 #load "src/types/coconuts.d.cmo";;
 #load "src/camel/camel.d.cmo";;
