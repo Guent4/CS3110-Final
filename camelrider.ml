@@ -1,13 +1,14 @@
 open Coconuts
 open Core.Std
 open Async.Std
+open Cohttp
 open Cohttp_async
-
+(*
 module Code = Cohttp.Code
 module Request = Cohttp.Request
 module Response = Cohttp.Response
 module Server = Cohttp_async.Server
-
+ *)
 (* Ref containing server handle *)
 let server = ref(Ivar.create())
 
