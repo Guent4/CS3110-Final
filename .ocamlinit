@@ -14,17 +14,13 @@
 #directory "_build/src/oasys";;
 
 #load "src/util/fileio.d.cmo";;
-
 #load "src/util/listops.d.cmo";;
-
 #load "src/types/coconuts.d.cmo";;
-#use "src/types/coconuts.ml";;
-
+#load "src/camel/camel.d.cmo";;
+#load "src/oasys/cameljson.d.cmo";;
 #load "src/oasys/palmtreeupdater.d.cmo";;
-#use "src/oasys/palmtreeupdater.ml";;
-
+#load "src/oasys/oasys.d.cmo";;
 #load "src/camelrider/camelrider.d.cmo";;
-#use "src/camelrider/camelrider.ml";;
 
 (*
 
