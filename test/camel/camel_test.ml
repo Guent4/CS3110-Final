@@ -3,15 +3,8 @@ open Camel
 
 let lex (s:string) : string list =
   let whitespace_char_string = String.concat "+"
-    (List.map (String.make 1)
-       [
-         Char.chr 9;  (* HT *)
-         Char.chr 10; (* LF *)
-         Char.chr 11; (* VT *)
-         Char.chr 12; (* FF *)
-         Char.chr 13; (* CR *)
-         Char.chr 32; (* space *)
-       ]) in
+    (List.map (String.make 1) [Char.chr 9; Char.chr 10; Char.chr 11;
+        Char.chr 12; Char.chr 13; Char.chr 32]) in
   let whitespace = "[" ^ whitespace_char_string ^ "]+" in
   Str.split (Str.regexp whitespace) s
 

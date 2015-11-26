@@ -11,7 +11,7 @@ type arg = string
  *  "git add -a")
  *)
 type opt =  MSG | ALL | SETUPSTREAM | DELETE | REMOVE | RENAME | BNCH | FILE
-  | EMPTY | INVALID_OPT of string
+  | CMD | EMPTY | INVALID_OPT of string
 
 (* This is the type that the user input will be parsed into.  The actual commands
  *  described in the cmd_expr will be executed later in OASys
