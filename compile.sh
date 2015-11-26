@@ -15,25 +15,27 @@ cs3110 compile src/types/coconuts.ml
 printf "${L_BLUE}Compiling UTIL\n"
 printf "${GREEN}compiling ${CYAN}fileio${NC}\n"
 cs3110 compile src/util/fileio
+printf "${GREEN}compiling ${CYAN}listops${NC}\n"
+cs3110 compile src/util/listops
 # camel
 printf "${L_BLUE}Compiling CAMEL\n"
 printf "${GREEN}compiling ${CYAN}camel.ml${NC}\n"
-cs3110 compile src/camel/camel -I src/types/
+cs3110 compile src/camel/camel -I src/types/ -I src/util/
 # oasys
 printf "${L_BLUE}Compiling OASYS\n"
 printf "${GREEN}compiling ${CYAN}cameljson.ml${NC}\n"
-cs3110 compile src/oasys/cameljson -I src/types/
+cs3110 compile src/oasys/cameljson -I src/types/ -I src/util/
 printf "${GREEN}compiling ${CYAN}palmtreeupdater.ml${NC}\n"
-cs3110 compile src/oasys/palmtreeupdater -I src/types/
+cs3110 compile src/oasys/palmtreeupdater -I src/types/ -I src/util/
 printf "${GREEN}compiling ${CYAN}oasys.ml${NC}\n"
-cs3110 compile src/oasys/oasys -I src/types/
+cs3110 compile src/oasys/oasys -I src/types/ -I src/util/
 # camelrider
 printf "${L_BLUE}Compiling CAMEL RIDER\n"
 printf "${GREEN}compiling ${CYAN}camelrider.ml${NC}\n"
-cs3110 compile src/camelrider/camelrider -I src/types/ -I src/oasys/
+cs3110 compile src/camelrider/camelrider -I src/types/ -I src/util/ -I src/oasys/
 # main
 printf "${L_BLUE}Compiling MAIN\n"
 printf "${GREEN}compiling ${CYAN}main.ml${NC}\n"
-cs3110 compile src/main.ml -I src/types/ -I src/oasys/ -I src/camel/
+cs3110 compile src/main.ml -I src/types/ -I src/util/ -I src/oasys/ -I src/camel/
 # done
 printf "${L_BLUE}Done.${NC}\n"

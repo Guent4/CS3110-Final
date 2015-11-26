@@ -23,3 +23,9 @@ val zip : string -> unit
 
 (* Unzip a zip file to current directory *)
 val unzip : string -> unit
+
+val file_exists : string -> bool
+
+val copy_file : string -> string -> unit
+
+val create_dir : string -> unit

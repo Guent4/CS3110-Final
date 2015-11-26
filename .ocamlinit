@@ -8,7 +8,7 @@
 
 #directory "_build";;
 #directory "_build/src/types";;
-#directory "_build/src/fileio";;
+#directory "_build/src/util";;
 #directory "_build/src/camel";;
 #directory "_build/src/camelrider";;
 #directory "_build/src/oasys";;

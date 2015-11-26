@@ -5,36 +5,25 @@ let oasys_dir = ".oasys/"
 
 let gen_hash() = string_of_int (hash (Unix.gettimeofday()))
 
-let file_exists path =
-  FileUtil.find FileUtil.Exists path (fun a x -> true || a) false
-
-let copy_file file_name target_dir =
-  FileUtil.cp [file_name] target_dir
-
 let get_config config =
   let repo_dir = config.repo_dir in
   let current_branch = config.current_branch in
   (repo_dir,current_branch)
 
-let create_dir dir =
-  FileUtil.mkdir dir
+let commit_changes added removed committed =
+  let committed' = Listops.subtract committed removed in
+  let committed'' = Listops.union committed' added in
+  let added' = [] in
+  let removed' = [] in
+  (added',removed',committed'')
 
 let to_string commits =
   match commits with
   | Changes(_,_,_) -> ""
   | Commit(id,msg) -> "====\nCommit " ^ id ^ "\n" ^ msg ^ "\n===="
 
-let remove_from_list l x =
-  List.filter (fun x' -> x' <> x) l
-
-let commit_changes added removed committed =
-  let committed' = List.filter (fun x -> not (List.mem x removed)) committed in
-  let committed'' = List.fold_left (fun a x -> if (not (List.mem x committed)) then x :: a else a) committed' added in
-  committed''
-
 let handle_request (cmd,data) = failwith "unimplemented"
 
-(*   let cur_branch = StringMap.find branch tree in *)
 let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * config * feedback =
   (* get repo_dir and branch_current from config *)
   let (repo_dir, current_branch) = get_config config in
@@ -42,7 +31,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
   match cmd with
   | (INIT,_,_) ->
     (* check if .oasys already exists *)
-    let exists = file_exists (repo_dir ^ oasys_dir) in
+    let exists = Fileio.file_exists (repo_dir ^ oasys_dir) in
     (
       match exists with
       | true ->
@@ -59,11 +48,11 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
             (* ==== FILE IO ==== *)
 
             (* create empty dir .oasys *)
-            let () = create_dir (repo_dir ^ oasys_dir) in
+            let () = Fileio.create_dir (repo_dir ^ oasys_dir) in
             (* create hash for id *)
             let id = gen_hash() in
             (* create directory for initial commit *)
-            let () = create_dir (repo_dir ^ oasys_dir ^ id ^ "/") in
+            let () = Fileio.create_dir (repo_dir ^ oasys_dir ^ id ^ "/") in
 
             (* ==== TREE MANAGEMENT ==== *)
 
@@ -86,7 +75,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
     )
   | (ADD,_,[file_name]) ->
     (* check if file exists *)
-    let exists = file_exists (repo_dir ^ file_name) in
+    let exists = Fileio.file_exists (repo_dir ^ file_name) in
     (
       match exists with
       | false ->
@@ -126,7 +115,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
     )
   | (RM,_,[file_name]) ->
     (* check if file exists *)
-    let exists = file_exists (repo_dir ^ file_name) in
+    let exists = Fileio.file_exists (repo_dir ^ file_name) in
     (
       match exists with
       | false ->
@@ -165,7 +154,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
     )
   | (RESET,_,[file_name]) ->
     (* check if file exists *)
-    let exists = file_exists (repo_dir ^ file_name) in
+    let exists = Fileio.file_exists (repo_dir ^ file_name) in
     (
       match exists with
       | false ->
@@ -190,7 +179,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
               | false -> (tree, config, Failure "")
               | true ->
                 (* build node *)
-                let added' = remove_from_list added file_name in
+                let added' = Listops.remove added file_name in
                 let changes' = Changes(added', removed, committed) in
                 (* build branch *)
                 let branch' = changes' :: prev_commits in
@@ -221,18 +210,16 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
             (* gen hash *)
             let id = gen_hash() in
             (* committed = committed - removed + added *)
-            let committed = commit_changes added removed committed in
-            let added = [] in
-            let removed = [] in
+            let (added, removed, committed) = commit_changes added removed committed in
 
             (* ==== FILE IO ==== *)
 
             (* create directory for commit *)
             let commit_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
-            let () = create_dir (repo_dir ^ oasys_dir ^ id ^ "/") in
+            let () = Fileio.create_dir (repo_dir ^ oasys_dir ^ id ^ "/") in
 
             (* copy files from committed to oasys/id/ *)
-            let () = List.iter (fun x -> copy_file (repo_dir ^ x) commit_dir) committed in
+            let () = List.iter (fun x -> Fileio.copy_file (repo_dir ^ x) commit_dir) committed in
 
             (* ==== TREE MANAGEMENT ==== *)
 
