@@ -137,7 +137,6 @@ let print_sugg (input:string) (dict:string list) =
   else ()
 
 let print_error ?s1:(s1="") ?s2:(s2="") ?i1:(i1=0) ?i2:(i2=0) ?i3:(i3=0) ?i4:(i4=0) = function
-  | 0 -> Printf.printf "FAILURE: Unable to parse input. \n\t Make sure your entire command is encapsulated in \" \" \n\t and that there are no other occurances of: \".\n"
   | 1 -> Printf.printf "FAILURE: \"%s\" is an invalid option.\n" s1; print_sugg s1 opt_str_list
   | 2 -> Printf.printf "FAILURE: The \"%s\" command does not support more than 1 option.\n" s1
   | 4 -> Printf.printf "FAILURE: Invalid command given: \"%s\".\n" s1; print_sugg s1 cmd_str_list
@@ -163,7 +162,7 @@ let parse_opt (c:cmd) (opt_list:string list) : opt list * string list =
   let rec parse_opt_rec opt_list acc =
     match opt_list with
     | [] -> (
-      if (List.length acc = 0) then (print_endline "1"; ([EMPTY], opt_list))
+      if (List.length acc = 0) then ([EMPTY], opt_list)
       else (acc, opt_list))
     | h::t -> (
       if (h = ".") then
