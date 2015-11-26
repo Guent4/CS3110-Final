@@ -1,0 +1,20 @@
+OASys Documentation
+
+
+<INIT> - This is the documentation for INIT.
+
+
+<ADD> - This is the documentation for ADD.
+	<-a or --all> - This selects all documents (shortcut: '.')
+	<-a or --all> - This selects all documents (shortcut: '.')
+
+
+
+<COMMIT> - This is to commit changes
+	<-m or --message> - Include messages
+
+
+<PUSH> - Push changes to remote
+
+
+<PULL> - Pull changes from remote

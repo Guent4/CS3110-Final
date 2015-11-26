@@ -1,28 +1,22 @@
 open Yojson.Basic.Util
 
-(* Describe which repository, local or remote, that the user is referring to *)
-type host = LOCAL | REMOTE
-
 (* Commands that OASys can support *)
 type cmd = PUSH | PULL | ADD | COMMIT | BRANCH | CHECKOUT | MERGE | DIFF
-  | STATUS | CONFIG | HELP | CLONE | INIT | LOG | RESET | QUIT
+  | STATUS | CONFIG | HELP | CLONE | INIT | LOG | RESET | RM | QUIT
   | INVALID_CMD of string
 
-(* A single argument for the command (i.e. "commit message" in
- *  "git commit -m "commit message"", repository name, )
- *)
 type arg = string
 
 (* All of the possible options that will be supported (i.e "-a" in
  *  "git add -a")
  *)
-type opt =  MSG | ORIGIN | ALL | SETUPSTREAM | QUIET |  DELETE | REMOVE | RENAME
-  | NEWBRANCH | INVALID_OPT of string
+type opt =  MSG | ALL | SETUPSTREAM | DELETE | REMOVE | RENAME | BNCH | FILE
+  | CMD | EMPTY | INVALID_OPT of string
 
 (* This is the type that the user input will be parsed into.  The actual commands
  *  described in the cmd_expr will be executed later in OASys
  *)
-type cmd_expr = host * cmd * opt list * arg list
+type cmd_expr = cmd * opt list * arg list
 
 type file_path = string
 
@@ -36,7 +30,13 @@ type id = string
 (* The commit message *)
 type msg = string
 
-type node = Commit of id * msg | Add
+type added = string list
+
+type deleted = string list
+
+type committed = string list
+
+type node = Commit of id * msg | Changes of added * deleted * committed
 
 type branch = node list
 
