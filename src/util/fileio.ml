@@ -1,22 +1,17 @@
-open Core.Std
+let read_list (filename:string) : string list =
+  Core.Std.In_channel.read_lines filename
 
-(* (* READ *)
+let write_list (filename:string) (sl:string list) : unit =
+  Core.Std.Out_channel.write_lines filename sl
 
-let read filename =
-  In_channel.read_lines filename
+let read_str (filename:string) : string =
+  let lst = read_list filename in
+  let str = List.fold_left (fun acc x -> acc^"\n"^x) "" lst in
+  if (String.length str > 0) then String.sub str 1 (String.length str - 1)
+  else ""
 
-WRITE
-
-let write filename lines =
-  Out_channel.write_lines filename lines *)
-
-let read_list s = failwith "Not implemented"
-
-let write_list s sl = failwith "Not implemented"
-
-let read s = failwith "Not implemented"
-
-let write s1 s2 = failwith "Not implemented"
+let write_str (filename:string) (s:string) : unit =
+  write_list filename (Str.split (Str.regexp "\n") s)
 
 let zip s = failwith "Not implemented"
 
@@ -24,6 +19,9 @@ let unzip s = failwith "Not implemented"
 
 let file_exists path =
   FileUtil.find FileUtil.Exists path (fun a x -> true || a) false
+
+let files_in_dir path =
+  FileUtil.ls path
 
 let copy_file file_name target_dir =
   FileUtil.cp [file_name] target_dir
