@@ -14,4 +14,4 @@ do
   shift
 done
 
-cs3110 run main.ml $types
+cs3110 run src/main.ml $types

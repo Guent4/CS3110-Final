@@ -9,7 +9,7 @@ printf "\n\n${L_BLUE}\tCompiling TYPES\n\n"
 
 # types
 printf "\n${GREEN}compiling ${CYAN}coconuts${NC}\n"
-cs3110 compile src/types/coconuts
+cs3110 compile src/types/coconuts.ml
 
 printf "\n\n${L_BLUE}\tCompiling CAMEL\n\n"
 
@@ -37,5 +37,12 @@ printf "\n\n${L_BLUE}\tCompiling CAMEL RIDER\n\n"
 # camelrider
 printf "\n${GREEN}compiling ${CYAN}camelrider.ml${NC}\n"
 cs3110 compile src/camelrider/camelrider -I src/types/ -I src/oasys/
+
+printf "\n\n${L_BLUE}\tCompiling MAIN\n\n"
+
+# main
+printf "\n${GREEN}compiling ${CYAN}main.ml${NC}\n"
+cs3110 compile src/main.ml -I src/types/ -I src/oasys/
+
 
 printf "\n\n${L_BLUE}\tdone.${NC}\n\n"

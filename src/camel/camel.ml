@@ -1,4 +1,4 @@
-open Str
+oopen Str
 open Coconuts
 
 let lex (s:string) : string list =
