@@ -27,6 +27,8 @@ printf "${GREEN}compiling ${CYAN}palmtreeupdater.ml${NC}\n"
 cs3110 compile src/oasys/palmtreeupdater -I src/types/
 printf "${GREEN}compiling ${CYAN}oasys.ml${NC}\n"
 cs3110 compile src/oasys/oasys -I src/types/
+printf "${GREEN}compiling ${CYAN}fileio.ml${NC}\n"
+cs3110 compile src/oasys/fileio
 # camelrider
 printf "${L_BLUE}Compiling CAMEL RIDER\n"
 printf "${GREEN}compiling ${CYAN}camelrider.ml${NC}\n"

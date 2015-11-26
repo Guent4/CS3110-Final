@@ -1,6 +1,3 @@
-(*open Types*)
-open Core.Std (*In_channel and Out_channel modules*)
-
 (**
  * [read filename] simulates an In_channel that reads the lines from [filename].
  *)
@@ -13,10 +10,10 @@ val read_list : string -> string list
 val write_list : string -> string list -> unit
 
 (* read a file and get all of its content in the form of a long string *)
-val read : string -> string
+val read_str : string -> string
 
 (* write a long string content (latter string) to a file with filename (former string) *)
-val write : string -> string -> unit
+val write_str : string -> string -> unit
 
 (* Creates a zip file with filename string with files in the current directory *)
 val zip : string -> unit
