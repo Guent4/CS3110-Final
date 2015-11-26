@@ -42,7 +42,7 @@ printf "\n\n${L_BLUE}\tCompiling MAIN\n\n"
 
 # main
 printf "\n${GREEN}compiling ${CYAN}main.ml${NC}\n"
-cs3110 compile src/main.ml -I src/types/ -I src/oasys/
+cs3110 compile src/main.ml -I src/types/ -I src/oasys/ -I src/camel/
 
 
 printf "\n\n${L_BLUE}\tdone.${NC}\n\n"
