@@ -11,7 +11,7 @@ printf "\n${L_BLUE}Starting compilation...\n"
 printf "${L_BLUE}Compiling TYPES\n"
 printf "${GREEN}compiling ${CYAN}coconuts${NC}\n"
 cs3110 compile src/types/coconuts.ml
-# fileio
+# util
 printf "${L_BLUE}Compiling UTIL\n"
 printf "${GREEN}compiling ${CYAN}fileio${NC}\n"
 cs3110 compile src/util/fileio
@@ -35,5 +35,5 @@ cs3110 compile src/camelrider/camelrider -I src/types/ -I src/oasys/
 printf "${L_BLUE}Compiling MAIN\n"
 printf "${GREEN}compiling ${CYAN}main.ml${NC}\n"
 cs3110 compile src/main.ml -I src/types/ -I src/oasys/ -I src/camel/
-
+# done
 printf "${L_BLUE}Done.${NC}\n"
