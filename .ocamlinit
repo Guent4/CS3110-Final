@@ -13,6 +13,10 @@
 #directory "_build/src/camelrider";;
 #directory "_build/src/oasys";;
 
+#load "src/util/fileio.d.cmo";;
+
+#load "src/util/listops.d.cmo";;
+
 #load "src/types/coconuts.d.cmo";;
 #use "src/types/coconuts.ml";;
 
