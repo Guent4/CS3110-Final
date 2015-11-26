@@ -236,8 +236,7 @@ let interpret (cmd_list:string list) : cmd_expr option =
 let rec read_interpret () : cmd_expr =
   match interpret (read ()) with
   | None -> exit 0
-  | Some (c,(h::[]),a) -> (
-      Printf.printf "%s %s " (detranslate_cmd c) (detranslate_opt h); (c,[h],a))
+  | Some (c,(h::[]),a) -> (c,[h],a)
   | Some _ -> failwith "other"
 
 let output x =
