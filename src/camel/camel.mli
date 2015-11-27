@@ -1,7 +1,7 @@
 open Coconuts
+
 (* Responsible for reading a line of text from the REPL; this wil be a line of
- *	user input
- *)
+ *	 user input *)
 val read : unit -> string list
 
 (* Responsible for lexing and parsing a string into a cmd_expr option.  Will
