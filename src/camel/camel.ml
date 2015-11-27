@@ -98,6 +98,7 @@ let expected_arg_num_list =
 let expected_arg_num = List.fold_left (fun acc x -> match x with | (x,y) -> M.add x y acc)
   M.empty expected_arg_num_list
 
+let lex (s:string) : string list =
   let whitespace_char_string = String.concat "+"
     (List.map (String.make 1)
        [
@@ -107,10 +108,13 @@ let expected_arg_num = List.fold_left (fun acc x -> match x with | (x,y) -> M.ad
          Char.chr 12; (* FF *)
          Char.chr 13; (* CR *)
          Char.chr 32; (* space *)
-       ])
-  let whitespace = "[" ^ whitespace_char_string ^ "]"
-let lex (s:string) : string list =
+       ]) in
+  let whitespace = "[" ^ whitespace_char_string ^ "]" in
   Str.split (Str.regexp whitespace) (String.trim s)
+
+let is_int s =
+  try ignore (int_of_string s); true
+  with _ -> false
 
 let calc_lev str1 str2 =
   let minimum a b c = min (min a b) c in
@@ -154,14 +158,16 @@ let print_error ?s1:(s1="") ?s2:(s2="") ?i1:(i1=0) ?i2:(i2=0) ?i3:(i3=0) ?i4:(i4
   | 8 -> Printf.printf "FAILURE: Did not enter a command to search.\n"
   | 9 -> Printf.printf "FAILURE: Searching for too many commands.  Please reduce to only one command.\n"
   | 10 -> Printf.printf "FAILURE: \"%s\" is not a command; command-search cannot be completed.\nTry general-search without \"--cmd\" option.\n" s1
-  | 11 -> Printf.printf "FAILURE: Cannot find the command \"%s\" in the documentation.\n" s1
+  | 11 -> Printf.printf "UNSUCCESSFUL: Cannot find the command \"%s\" in the documentation.\n" s1
+  | 12 -> Printf.printf "UNSUCCESSFUL: Cannot find search in the documentation\n"
+  | 13 -> Printf.printf "FAILURE: Input was not a number.\n"
+  | 14 -> Printf.printf "UNSUCCESSFUL: Apologies. Unable to find topic in documentation.\n"
   | _ -> Printf.printf "\n"
 
-let search_for_topic (inputs:arg list) : string list =
+let search_for_topic (doc:string) (inputs:arg list) : string list =
   if (List.length inputs = 0) then (print_error 0; [])
   else (
     let inputs = List.map (fun x -> String.uppercase x) inputs in
-    let doc = Fileio.read_str help_loc in
     let desired = List.fold_left (fun acc x -> acc^x^"\\|") "" inputs in
     let desired' = String.sub desired 0 (String.length desired - 2) in
     let regex = "<.*"^desired'^".*>" in
@@ -174,11 +180,27 @@ let search_for_topic (inputs:arg list) : string list =
     find_topics [] 0)
 
 let help_empty (a_s:arg list) : unit =
-  let topics = search_for_topic a_s in
-  List.iter (fun x -> print_endline x) topics
-
-  (* let input = read_line() in *)
-  (* print_endline input *)
+  let doc = Fileio.read_str help_loc in
+  let topics = search_for_topic doc a_s in
+  if (List.length topics = 0) then print_error 2
+  else (
+    print_endline "These are the search result. Please enter the number corresponding to interest:\n\t0: Quit";
+    ignore (List.fold_left (fun a x -> print_endline ("\t"^(string_of_int a)^": "^x); a+1) 1 topics);
+    let sel = read_line() in
+    if (is_int sel) then
+      let sel_num = int_of_string sel in
+      if (sel_num = 0) then ()
+      else (
+        let sel_name = List.nth topics (sel_num - 1) in
+        let regex = sel_name^"\\(.*\\(\n\t\\)*\\)*" in
+        (try (
+          ignore(Str.search_forward (Str.regexp regex) doc 0);
+          print_endline (Str.matched_string doc))
+        with
+          Not_found -> print_error 14); ()
+      )
+    else print_error 13
+  )
 
 let help_cmd (a_s:arg list) : unit =
   if (List.length a_s = 0)
@@ -196,8 +218,7 @@ let help_cmd (a_s:arg list) : unit =
       ignore(Str.search_forward (Str.regexp regex) doc 0);
       print_endline (Str.matched_string doc))
     with
-      Not_found -> print_error 11 ~s1:desired);
-    ()
+      Not_found -> print_error 11 ~s1:desired); ()
   )
 
 let offer_help (expr:cmd_expr option) : unit =
