@@ -3,6 +3,7 @@ open Coconuts
 open Fileio
 
 let doc_loc = "./OASys_Doc.txt"
+let help_loc = "./OASys_Help.txt"
 
 let cmd_str_list = ["init";"log";"status";"add";"commit";"branch";"checkout";
   "reset";"rm";"diff";"merge";"config";"push";"pull";"clone";"help";"quit"]
@@ -92,7 +93,7 @@ let expected_arg_num_list =
     ((RM,BNCH),[-1]);       ((RM,FILE),[-1]);
     ((DIFF,EMPTY),[0]);     ((DIFF,FILE),[2]);  ((DIFF,BNCH),[0;2]);
     ((PUSH,EMPTY),[0]);
-    ((HELP,EMPTY),[-1]);    ((HELP,CMD),[1])
+    ((HELP,EMPTY),[-2]);    ((HELP,CMD),[1])
   ]
 let expected_arg_num = List.fold_left (fun acc x -> match x with | (x,y) -> M.add x y acc)
   M.empty expected_arg_num_list
@@ -143,6 +144,7 @@ let print_sugg (input:string) (dict:string list) =
   else ()
 
 let print_error ?s1:(s1="") ?s2:(s2="") ?i1:(i1=0) ?i2:(i2=0) ?i3:(i3=0) ?i4:(i4=0) = function
+  | 0 -> Printf.printf "\nWelcome to OASys!\nCreated by Gu, Ho, Moheed, and Ramalingam\n\nFor help, refer to the readme.txt file in the folder\nTo search up info about a specific command, type \"help --cmd command_name\".\nTo search up more general topics, type \"help search_word(s)\".\n\nFor more questions, contact ____\n\n"
   | 1 -> Printf.printf "FAILURE: \"%s\" is an invalid option.\n" s1; print_sugg s1 opt_str_list
   | 2 -> Printf.printf "FAILURE: The \"%s\" command does not support more than 1 option.\n" s1
   | 4 -> Printf.printf "FAILURE: Invalid command given: \"%s\".\n" s1; print_sugg s1 cmd_str_list
@@ -155,7 +157,28 @@ let print_error ?s1:(s1="") ?s2:(s2="") ?i1:(i1=0) ?i2:(i2=0) ?i3:(i3=0) ?i4:(i4
   | 11 -> Printf.printf "FAILURE: Cannot find the command \"%s\" in the documentation.\n" s1
   | _ -> Printf.printf "\n"
 
-let help_empty (a_s:arg list) : unit = ()
+let search_for_topic (inputs:arg list) : string list =
+  if (List.length inputs = 0) then (print_error 0; [])
+  else (
+    let inputs = List.map (fun x -> String.uppercase x) inputs in
+    let doc = Fileio.read_str help_loc in
+    let desired = List.fold_left (fun acc x -> acc^x^"\\|") "" inputs in
+    let desired' = String.sub desired 0 (String.length desired - 2) in
+    let regex = "<.*"^desired'^".*>" in
+    let rec find_topics acc start =
+      (try (
+        let start' = (Str.search_forward (Str.regexp regex) doc start) + 1 in
+        (find_topics ((Str.matched_string doc)::acc) start'))
+      with
+        Not_found -> acc) in
+    find_topics [] 0)
+
+let help_empty (a_s:arg list) : unit =
+  let topics = search_for_topic a_s in
+  List.iter (fun x -> print_endline x) topics
+
+  (* let input = read_line() in *)
+  (* print_endline input *)
 
 let help_cmd (a_s:arg list) : unit =
   if (List.length a_s = 0)
@@ -167,13 +190,13 @@ let help_cmd (a_s:arg list) : unit =
   else (
     (* List.iter (fun x -> print_endline x) (Fileio.files_in_dir doc_loc) *)
     let doc = Fileio.read_str doc_loc in
-    let cmd_desired = String.uppercase (List.hd a_s) in
-    let regex = "<"^cmd_desired^">\\(.*\\(\n\t\\)*\\)*" in
+    let desired = String.uppercase (List.hd a_s) in
+    let regex = "<"^desired^">\\(.*\\(\n\t\\)*\\)*" in
     (try (
       ignore(Str.search_forward (Str.regexp regex) doc 0);
       print_endline (Str.matched_string doc))
     with
-      Not_found -> print_error 11 ~s1:cmd_desired);
+      Not_found -> print_error 11 ~s1:desired);
     ()
   )
 
@@ -236,7 +259,8 @@ let check_args (c:cmd) (o:opt list) (a:arg list) : cmd_expr option =
     if (M.mem (c,f) expected_arg_num) then
       let es = M.find (c,f) expected_arg_num in
       let es_str = get_string_num_opts es in
-      (if ((List.mem (-1) es) && (List.length a = 0))
+      (if (List.mem(-2) es) then (Some (c,o,a))
+      else if ((List.mem (-1) es) && (List.length a = 0))
         then (print_error 6 ~s1:es_str; None)
       else if ((not (List.mem (-1) es)) && (not (List.mem (List.length a) es)))
         then (print_error 7 ~i1:(List.length a) ~s1:es_str; None)
