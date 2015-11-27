@@ -82,21 +82,43 @@ let detranslate_opt (opt:opt) : string =
   | INVALID_OPT s   -> "s"
 
 module M = Map.Make (struct type t = (cmd * opt) let compare a b = Pervasives.compare a b end)
-let expected_arg_num_list =
-  [ ((INIT,EMPTY),[0]);
-    ((LOG,EMPTY),[0]);
-    ((STATUS,EMPTY),[0]);
-    ((ADD,EMPTY),[-1]);     ((ADD,ALL),[0]);
-    ((COMMIT,MSG),[1]);
-    ((BRANCH,EMPTY),[1]);
-    ((RESET,FILE),[-1]);    ((RESET,BNCH),[1]);
-    ((RM,BNCH),[-1]);       ((RM,FILE),[-1]);
-    ((DIFF,EMPTY),[0]);     ((DIFF,FILE),[2]);  ((DIFF,BNCH),[0;2]);
-    ((PUSH,EMPTY),[0]);
-    ((HELP,EMPTY),[-2]);    ((HELP,CMD),[1])
-  ]
-let expected_arg_num = List.fold_left (fun acc x -> match x with | (x,y) -> M.add x y acc)
-  M.empty expected_arg_num_list
+let arg_num_expected =
+  let lst =
+    [ ((INIT,EMPTY),[0]);
+      ((LOG,EMPTY),[0]);
+      ((STATUS,EMPTY),[0]);
+      ((ADD,EMPTY),[-1]);     ((ADD,ALL),[0]);
+      ((COMMIT,MSG),[1]);
+      ((BRANCH,EMPTY),[1]);
+      ((RESET,FILE),[-1]);    ((RESET,BNCH),[1]);
+      ((RM,BNCH),[-1]);       ((RM,FILE),[-1]);
+      ((DIFF,EMPTY),[0]);     ((DIFF,FILE),[2]);  ((DIFF,BNCH),[0;2]);
+      ((PUSH,EMPTY),[0]);
+      ((HELP,EMPTY),[-2]);    ((HELP,CMD),[1])
+    ] in
+  List.fold_left (fun acc x -> match x with | (x,y) -> M.add x y acc) M.empty lst
+
+let arg_num_default =
+  let lst =
+    [ ((INIT,EMPTY),EMPTY);
+      ((LOG,EMPTY),EMPTY);
+      ((STATUS,EMPTY),EMPTY);
+      ((ADD,EMPTY),EMPTY);
+      ((COMMIT,EMPTY),EMPTY);
+      ((BRANCH,EMPTY),EMPTY);
+      ((CHECKOUT,EMPTY),EMPTY);
+      ((RESET,EMPTY),FILE);
+      ((RM,EMPTY),FILE);
+      ((DIFF,EMPTY),EMPTY);
+      ((MERGE,EMPTY),EMPTY);
+      ((CONFIG,EMPTY),EMPTY);
+      ((PUSH,EMPTY),EMPTY);
+      ((PULL,EMPTY),EMPTY);
+      ((CLONE,EMPTY),EMPTY);
+      ((HELP,EMPTY),EMPTY)
+    ] in
+  List.fold_left (fun acc x -> match x with | (x,y) -> M.add x y acc) M.empty lst
+
 
 let lex (s:string) : string list =
   let whitespace_char_string = String.concat "+"
@@ -272,12 +294,13 @@ let get_string_num_opts (os:int list) : string =
   String.sub with_space_in_front 1 (String.length with_space_in_front - 1)
 
 let check_args (c:cmd) (o:opt list) (a:arg list) : cmd_expr option =
-  (* List.iter (fun x -> print_endline ("arg: '"^x^"'")) a; *)
   match o with
   | [] -> failwith "No option given"
   | f::e -> (
-    if (M.mem (c,f) expected_arg_num) then
-      let es = M.find (c,f) expected_arg_num in
+    let f = if (M.mem (c,f) arg_num_default) then M.find (c,f) arg_num_default
+      else f in
+    if (M.mem (c,f) arg_num_expected) then
+      let es = M.find (c,f) arg_num_expected in
       let es_str = get_string_num_opts es in
       (if (List.mem(-2) es) then (Some (c,o,a))
       else if ((List.mem (-1) es) && (List.length a = 0))
