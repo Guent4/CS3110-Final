@@ -1,6 +1,0 @@
-{
-  "type":"changes", // string
-  "added": ["wug.txt","wuggle.txt"], // string list
-  "deleted": ["wugg.txt"], // string list
-  "committed": [] // string list
-}
