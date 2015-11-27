@@ -32,17 +32,19 @@ type msg = string
 
 type added = string list
 
-type deleted = string list
+type removed = string list
 
 type committed = string list
 
-type node = Commit of id * msg | Changes of added * deleted * committed
+type node = Commit of id * msg | Changes of added * removed * committed
 
 type branch = node list
 
 module PalmTree = Map.Make (struct type t = string let compare a b = Pervasives.compare a b end)
 
 type palm_tree = branch PalmTree.t
+
+type state = {config: config; tree: palm_tree}
 
 (* JSON used for sending and receiving data. *)
 type json = Yojson.Basic.json

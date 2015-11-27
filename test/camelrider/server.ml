@@ -37,7 +37,7 @@ let stop () =
 
 (* COMMAND LINE TESTING *)
 
-(* let run ~port =
+let run ~port =
   let host_and_port =
     Tcp.Server.create
       ~on_handler_error:`Raise
@@ -47,4 +47,4 @@ let stop () =
            ~f:(if uppercase then String.uppercase else Fn.id))
   in
   ignore (host_and_port : (Socket.Address.Inet.t, int) Tcp.Server.t Deferred.t);
-  Deferred.never () *)
+  Deferred.never ()
