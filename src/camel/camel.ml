@@ -232,7 +232,6 @@ let help_cmd (a_s:arg list) : unit =
   else if (not (List.mem (List.hd a_s) cmd_str_list))
     then print_error 10 ~s1:(List.hd a_s)
   else (
-    (* List.iter (fun x -> print_endline x) (Fileio.files_in_dir doc_loc) *)
     let doc = Fileio.read_str doc_loc in
     let desired = String.uppercase (List.hd a_s) in
     let regex = "<"^desired^">\\(.*\\(\n\t\\)*\\)*" in
