@@ -181,8 +181,7 @@ let offer_help (expr:cmd_expr option) : unit =
   match expr with
   | Some (HELP,[EMPTY],a_s) -> help_empty a_s
   | Some (HELP,[CMD],a_s) -> help_cmd a_s
-  | None -> ()
-  | _ -> failwith "Not valid cmd_expr"
+  | _ -> ()
 
 let parse_cmd (cmd_elmt:string) : cmd =
   translate_cmd cmd_elmt
