@@ -9,7 +9,6 @@ OASys Documentation
 	<-a or --all> - This selects all documents (shortcut: '.')
 
 
-
 <COMMIT> - This is to commit changes
 	<-m or --message> - Include messages
 
