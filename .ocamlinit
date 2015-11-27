@@ -23,9 +23,6 @@
 #load "src/oasys/oasys.d.cmo";;
 #load "src/camelrider/camelrider.d.cmo";;
 
-#load "src/oasys/fileio.d.cmo";;
-#use "src/oasys/fileio.ml";;
-
 (*
 
 let tree = PalmTree.empty;;
