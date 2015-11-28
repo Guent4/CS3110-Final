@@ -19,6 +19,10 @@ printf "${GREEN}compiling ${CYAN}listops${NC}\n"
 cs3110 compile src/util/listops
 # camel
 printf "${L_BLUE}Compiling CAMEL\n"
+printf "${GREEN}compiling ${CYAN}atlas.ml${NC}\n"
+cs3110 compile src/camel/atlas -I src/types/
+printf "${GREEN}compiling ${CYAN}xiansheng.ml${NC}\n"
+cs3110 compile src/camel/xiansheng -I src/types/ -I src/util/
 printf "${GREEN}compiling ${CYAN}camel.ml${NC}\n"
 cs3110 compile src/camel/camel -I src/types/ -I src/util/
 # oasys
