@@ -4,7 +4,7 @@ declare file=~/.bashrc
 declare regex="alias oasys="
 declare file_content=$( cat "${file}" )
 
-if [[ " $file_content " =~ $regex ]] # please note the space before and after the file content
+if [[ " $file_content " =~ $regex ]]
   then
     printf '\n%s\n' 'Uninstalling OASYS...'
     OASYS_REL_PATH="`dirname \"$0\"`"
@@ -19,7 +19,7 @@ if [[ " $file_content " =~ $regex ]] # please note the space before and after th
     cd ${CUR_DIR}
     sed -i '/oasys/d' ~/.bashrc
     sed -i '/OASYS/d' ~/.bashrc
-    printf '\n%s \n\n' 'OASYS has been uninstalled :-('
+    printf '\n%s \n\n' 'OASYS has been uninstalled :-( .\nPlease restart your terminal for changes to be registered.'
   else
     printf '\n%s\n' 'OASYS is not installed on your system.'
 fi
