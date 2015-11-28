@@ -77,12 +77,7 @@ let check_cmd_expr (c:cmd) (o:opt list) (a:arg list) : cmd_expr option =
   | INVALID_CMD x -> print_error 4 ~s1:x; print_sugg x cmd_str_list; None
   | _ -> check_opt c o a
 
-<<<<<<< HEAD
 let read () : string * (string list)  =
-  (* List.iter (fun x -> print_endline x) (Array.to_list Sys.argv); *)
-=======
-let rec read () : string list  =
->>>>>>> af8619cfa97801daeba16fc138065e9cd4b695bb
   match Array.to_list Sys.argv with
   | h::r::t -> (r,t)
   | _ -> exit 0
