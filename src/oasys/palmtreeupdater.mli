@@ -1,4 +1,3 @@
-open Hashtbl
 open Coconuts
 
 (* This is responsible for taking in the cmd_expr, which is the parsed command

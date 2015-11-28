@@ -1,9 +1,8 @@
-open Hashtbl
 open Coconuts
 
 let oasys_dir = ".oasys/"
 
-let gen_hash() = string_of_int (hash (Unix.gettimeofday()))
+let gen_hash() = string_of_int (Hashtbl.hash (Unix.gettimeofday()))
 
 let (|+|) l1 l2 = Listops.union l1 l2
 
