@@ -1,0 +1,29 @@
+OASys Help
+
+
+<PROPER WAY TO PUSH> - This is the proper procedure to push
+	- checkout master
+	- pull (there should not be any merge conflict)
+	- checkout your_branch_name
+	- merge master (resolve any merge conflicts)
+	- checkout master
+	- merge your_branch_name
+	For more information, search:
+	- fast-forwarding
+	- merge
+	- resolving merge conflicts
+
+
+<FAST-FORWARDING> - Explanation
+
+
+<RESOLVING MERGE CONFLICTS> - This is how you resolve merge conflicts.
+
+
+<ADDING A BRANCH> - This is how you add a branch
+
+
+<DELETING A BRANCH> - This is how you delete a branch
+
+
+<SOME OTHER TOPIC> - Add more topics

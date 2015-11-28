@@ -1,0 +1,7 @@
+{
+  "config": { "repo_dir": "./test_proj/", "current_branch": "master" },
+  "tree": {
+    "master": [
+    ]
+  }
+}

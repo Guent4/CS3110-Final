@@ -1,12 +1,8 @@
 open Coconuts
 open Core.Std
 open Async.Std
+open Cohttp
 open Cohttp_async
-
-module Code = Cohttp.Code
-module Request = Cohttp.Request
-module Response = Cohttp.Response
-module Server = Cohttp_async.Server
 
 (* Ref containing server handle *)
 let server = ref(Ivar.create())
@@ -52,11 +48,10 @@ let start p =
 (* Stops the server *)
 let stop () =
   if Ivar.is_full !server then
-    ignore(
-    (Ivar.read !server >>= fun s ->
+    Ivar.read !server >>= fun s ->
     s >>= fun s ->
-    ignore(Server.close s);
-    return (server:= (Ivar.create ()))))
+    (server:= (Ivar.create ()));
+    Server.close s
   else
     failwith "No server to close"
 

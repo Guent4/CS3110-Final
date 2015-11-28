@@ -139,7 +139,7 @@ let commit tree config repo_dir current_branch message =
       let committed'' = committed' |+| added in
       let commit_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
       let () = Fileio.create_dir (repo_dir ^ oasys_dir ^ id ^ "/") in
-      let () = List.iter (fun x -> Fileio.copy_file (repo_dir ^ x) commit_dir) committed in
+      let () = List.iter (fun x -> Fileio.copy_file (repo_dir ^ x) commit_dir) committed'' in
       let commit = Commit (id, message) in
       let added' = [] in
       let removed' = [] in
@@ -197,13 +197,13 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
   match cmd with
   | (INIT,_,_) -> init tree config repo_dir current_branch
   | (ADD,_,[file_name]) -> add tree config repo_dir current_branch file_name
-  | (RM,_,[file_name]) -> rm tree config repo_dir current_branch file_name
-  | (RESET,_,[file_name]) -> reset tree config repo_dir current_branch file_name
+  | (RM,[FILE],[file_name]) -> rm tree config repo_dir current_branch file_name
+  | (RESET,[FILE],[file_name]) -> reset tree config repo_dir current_branch file_name
   | (COMMIT,_,[message]) -> commit tree config repo_dir current_branch message
   | (LOG,_,_) -> log tree config repo_dir current_branch
   | (BRANCH,_,[]) -> get_branches tree config repo_dir current_branch
   | (BRANCH,_,[branch_name]) -> branch tree config repo_dir current_branch branch_name
   | (CHECKOUT,_,[branch_name]) -> checkout tree config repo_dir current_branch branch_name
-  | _ -> failwith "unimplemented"
+  | _ -> (tree,config,Failure Feedback.no_support)
 
 let handle_request (cmd,data) = failwith "unimplemented"
