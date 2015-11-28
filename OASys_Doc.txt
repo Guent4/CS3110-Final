@@ -6,7 +6,6 @@ OASys Documentation
 
 <ADD> - Add files to staging.
   <-a or --all> - This selects all documents (shortcut: '.').
-  <filename> - This adds specific file.
 
 
 <COMMIT> - This is to commit changes.
@@ -20,42 +19,47 @@ OASys Documentation
 
 
 <BRANCH> - List all branches in the repository.
-  <-d> - Delete specified branch.
+  <-b or --branch> - Create new branch.
 
 
 <CHECKOUT> - Create a new branch and switch to it.
-  <branchname> - This switches to new branch.
+  <-b or --branch> - This switches to new branch.
 
 
-<MERGE> - Merge branch into active repository.
+<MERGE> - Merge branch into active repository. (*NOT DONE*)
   <branchname> - Branch to merge from.
 
 
 <DIFF> - View all merge conflicts. (*NOT DONE*)
+  <--file> - DESCRIPTION
+  <-b or --branch> - DESCRIPTION
 
 
 <STATUS> - List files that have changed, need to be added or need to be committed.
 
 
-<CONFIG> - Configure author name and email to be used with commits. (*NOT DONE*)
+<CONFIG> - Configure author name and email to be used with commits.
+(*NOT DONE*)
 
 
-<HELP> - Display help information about OASys. (*NOT DONE*)
-  <command> - Specific command to receive help about.
+<HELP> - Display help information about OASys.
+  <--cmd> - Specific command to receive help about.
 
 
-<CLONE> - Create a working copy of local repository.
-  <path> - File path to clone from.
+<CLONE> - Create a working copy of local repository. (*NOT DONE*)
 
 
 <LOG> - Log of all commits.
 
 
-<RESET> - Drop all local changes and fetch latest history from server. (*NOTDONE*)
+<RESET> - Drop all local changes and fetch latest history from server.
+  <--file> - DESCRIPTION
+  <-b or --branch> - DESCRIPTION
 
 
 <RM> - Remove files from working tree.
   <--file> - The file to remove.
+  <-b or --branch> - DESCRIPTION
 
 
 <QUIT> - Exits the OASys program.
