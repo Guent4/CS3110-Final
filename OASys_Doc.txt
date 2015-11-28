@@ -1,22 +1,64 @@
 OASys Documentation
 
 
-<INIT> - This is the documentation for INIT.
+<INIT> - Create a new local repository.
 
 
-<ADD> - This is the documentation for ADD.
-	<-a or --all> - This selects all documents (shortcut: '.')
-	<-a or --all> - This selects all documents (shortcut: '.')
+<ADD> - Add files to staging.
+  <-a or --all> - This selects all documents (shortcut: '.').
+  <filename> - This adds specific file.
 
 
-
-<COMMIT> - This is to commit changes
-	<-m or --message> - Include messages
-
-
-<PUSH> - Push changes to remote
+<COMMIT> - This is to commit changes.
+  <-m or --message> - Include messages.
 
 
-<PULL> - Pull changes from remote
+<PUSH> - Push changes to remote.
 
 
+<PULL> - Pull changes from remote.
+
+
+<BRANCH> - List all branches in the repository.
+  <-d> - Delete specified branch.
+
+
+<CHECKOUT> - Create a new branch and switch to it.
+  <branchname> - This switches to new branch.
+
+
+<MERGE> - Merge branch into active repository.
+  <branchname> - Branch to merge from.
+
+
+<DIFF> - View all merge conflicts. (*NOT DONE*)
+
+
+<STATUS> - List files that have changed, need to be added or need to be committed.
+
+
+<CONFIG> - Configure author name and email to be used with commits. (*NOT DONE*)
+
+
+<HELP> - Display help information about OASys. (*NOT DONE*)
+  <command> - Specific command to receive help about.
+
+
+<CLONE> - Create a working copy of local repository.
+  <path> - File path to clone from.
+
+
+<LOG> - Log of all commits.
+
+
+<RESET> - Drop all local changes and fetch latest history from server. (*NOTDONE*)
+
+
+<RM> - Remove files from working tree.
+  <--file> - The file to remove.
+
+
+<QUIT> - Exits the OASys program.
+
+
+<INVALID_CMD> - Invalid Command.
