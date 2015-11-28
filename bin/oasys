@@ -1,5 +1,7 @@
 #!/bin/bash
 
+CUR_DIR=$(pwd)
+
 types="$(pwd)/ "
 
 while [ $# -gt 0 ]

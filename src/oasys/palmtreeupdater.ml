@@ -259,16 +259,27 @@ let rec find_branch branch hash =
   | _ -> None
 
 
-let reset_branch tree config repo_dir current_branch hash = failwith ""
-(*   let branch = PalmTree.find current_branch tree in
+let reset_branch tree config repo_dir current_branch hash =
+  let branch = PalmTree.find current_branch tree in
   match find_branch branch hash with
   | None -> (tree,config,Failure "No such commit exists in branch")
-  | Some target_branch ->
-    let commit_dir = repo_dir ^ "/.oasys/" ^ hash in
-    let () = List.iter (fun x -> Fileio.copy_file (repo_dir ^ x) commit_dir) committed'' in
-    let branch' = Changes([],[],[]) :: target_branch in
+  | Some (Commit(id,msg,committed) :: prev_commits) ->
+    let commit_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
+    let () =
+      List.iter
+      (fun x -> Fileio.copy_file (commit_dir ^ x) repo_dir)
+      committed
+    in
+    let added = [] in
+    let removed = [] in
+    let branch' =
+      Changes(added,removed) ::
+      Commit(id,msg,committed) ::
+      prev_commits
+    in
     let tree' = PalmTree.add current_branch branch' tree in
-    (tree', config, Success "Branch has been successful reset to a previous commit") *)
+    (tree', config, Success "Branch has been successful reset to a previous commit")
+  | _ -> assert false
 
 let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * config * feedback =
   let (repo_dir, current_branch) = get_config config in
