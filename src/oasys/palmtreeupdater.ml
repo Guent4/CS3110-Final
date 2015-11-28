@@ -4,6 +4,9 @@ let oasys_dir = ".oasys/"
 
 let gen_hash() = string_of_int (Hashtbl.hash (Unix.gettimeofday()))
 
+let gen_hash k =
+  string_of_int (Hashtbl.hash k)
+
 let (|+|) l1 l2 = Listops.union l1 l2
 
 let (|-|) l1 l2 = Listops.subtract l1 l2
@@ -219,6 +222,29 @@ let file_batch_op op tree config repo_dir current_branch files =
   in
   (tree',config',Success feedback)
 
+let rec find_branch branch hash =
+  match branch with
+  | Changes(_,_,_) :: commits -> find_branch commits hash
+  | Commit(id,msg) :: prev_commits ->
+    (
+      match id = hash with
+      | true -> Some branch
+      | false -> find_branch prev_commits hash
+    )
+  | _ -> None
+
+
+let reset_branch tree config repo_dir current_branch hash = failwith ""
+(*   let branch = PalmTree.find current_branch tree in
+  match find_branch branch hash with
+  | None -> (tree,config,Failure "No such commit exists in branch")
+  | Some target_branch ->
+    let commit_dir = repo_dir ^ "/.oasys/" ^ hash in
+    let () = List.iter (fun x -> Fileio.copy_file (repo_dir ^ x) commit_dir) committed'' in
+    let branch' = Changes([],[],[]) :: target_branch in
+    let tree' = PalmTree.add current_branch branch' tree in
+    (tree', config, Success "Branch has been successful reset to a previous commit") *)
+
 let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * config * feedback =
   let (repo_dir, current_branch) = get_config config in
   match cmd with
@@ -227,6 +253,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
   | (RM,[FILE],files) -> file_batch_op rm_file tree config repo_dir current_branch files
   | (RM,[BNCH],[branch_name]) -> rm_branch tree config repo_dir current_branch branch_name
   | (RESET,[FILE],files) -> file_batch_op reset_file tree config repo_dir current_branch files
+  | (RESET,[BNCH],[hash]) -> reset_branch tree config repo_dir current_branch hash
   | (COMMIT,[EMPTY],[message]) -> commit tree config repo_dir current_branch message
   | (LOG,[EMPTY],[]) -> log tree config repo_dir current_branch
   | (BRANCH,[EMPTY],[]) -> get_branches tree config repo_dir current_branch
