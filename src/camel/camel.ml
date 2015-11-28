@@ -77,26 +77,32 @@ let check_cmd_expr (c:cmd) (o:opt list) (a:arg list) : cmd_expr option =
   | INVALID_CMD x -> print_error 4 ~s1:x; print_sugg x cmd_str_list; None
   | _ -> check_opt c o a
 
+<<<<<<< HEAD
+let read () : string * (string list)  =
+  (* List.iter (fun x -> print_endline x) (Array.to_list Sys.argv); *)
+=======
 let rec read () : string list  =
+>>>>>>> af8619cfa97801daeba16fc138065e9cd4b695bb
   match Array.to_list Sys.argv with
-  | [] -> exit 0
-  | h::t -> t
+  | h::r::t -> (r,t)
+  | _ -> exit 0
 
-let interpret (cmd_list:string list) : cmd_expr option =
+let interpret (cmd_pair:string * (string list)) : string * (cmd_expr option) =
+  let (repo_dir,cmd_list) = cmd_pair in
   match cmd_list with
-  | [] -> None
+  | [] -> (repo_dir,None)
   | cmd_elmt::opt_list ->
     let c = parse_cmd cmd_elmt in
     let (opts,arg_list) = parse_opt c opt_list in
     let args = parse_arg c opts arg_list in
     let expr_option = check_cmd_expr c opts args in
-    offer_help expr_option; expr_option
+    offer_help expr_option; (repo_dir,expr_option)
 
-let rec read_interpret () : cmd_expr =
+let rec read_interpret () : string * cmd_expr =
   match interpret (read ()) with
-  | None -> exit 0
-  | Some (c,(h::[]),a) -> (c,[h],a)
-  | Some _ -> failwith "other"
+  | r,None -> exit 0
+  | r,Some (c,(h::[]),a) -> (r,(c,[h],a))
+  | _ -> failwith "other"
 
 let output (x:feedback) : unit =
   match x with

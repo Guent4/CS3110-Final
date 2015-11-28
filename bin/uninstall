@@ -1,0 +1,5 @@
+#!/bin/bash
+printf '\n%s\n' 'Uninstalling OASYS...'
+sed -i '/oasys/d' ~/.bashrc
+sed -i '/OASYS/d' ~/.bashrc
+printf '\n%s \n\n' 'OASYS has been uninstalled :-('
