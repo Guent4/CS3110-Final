@@ -1,0 +1,34 @@
+#!/bin/bash
+
+printf "\nRepository Directory: %s\n" "$(pwd)"
+
+types="$(pwd)/ "
+
+while [ $# -gt 0 ]
+do
+  temp=''$1
+  if [ ${temp:0:1} = "-" ]
+    then
+      types=$types' %'$1
+  else
+      types=$types' '$1
+  fi
+  shift
+done
+
+OASYS_REL_PATH="`dirname \"$0\"`"              # relative
+OASYS_ABS_PATH="`( cd \"$OASYS_REL_PATH\" && pwd )`"  # absolutized and normalized
+if [ -z "$OASYS_ABS_PATH" ] ; then
+  # error; for some reason, the path is not accessible
+  # to the script (e.g. permissions re-evaled after suid)
+  exit 1  # fail
+fi
+OASYS_DIR=${OASYS_ABS_PATH}
+
+printf "\nOASYS_HOME: %s\n" ${OASYS_DIR}
+
+cd ${OASYS_DIR}/../
+
+cs3110 run src/main.ml $types
+
+cd ${CUR_DIR}
