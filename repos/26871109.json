@@ -1,0 +1,17 @@
+{
+  "config": {
+    "repo_dir": "/home/vagrant/test_proj/",
+    "current_branch": "master"
+  },
+  "tree": {
+    "master": [
+      {
+        "type": "Changes",
+        "added": [ "wuggler.txt", "wuggle.txt" ],
+        "removed": [],
+        "committed": []
+      },
+      { "type": "Commit", "id": "724470420", "msg": "initial commit" }
+    ]
+  }
+}

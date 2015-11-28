@@ -33,3 +33,5 @@ val copy_file : string -> string -> unit
 val create_dir : string -> unit
 
 val remove_dir : string -> unit
+
+val remove_file : string -> unit

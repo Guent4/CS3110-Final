@@ -1,5 +1,28 @@
 #!/bin/bash
-printf '\n%s\n' 'Uninstalling OASYS...'
-sed -i '/oasys/d' ~/.bashrc
-sed -i '/OASYS/d' ~/.bashrc
-printf '\n%s \n\n' 'OASYS has been uninstalled :-('
+
+declare file=~/.bashrc
+declare regex="alias oasys="
+declare file_content=$( cat "${file}" )
+
+if [[ " $file_content " =~ $regex ]]
+  then
+    printf '\n%s\n' 'Uninstalling OASYS...'
+    OASYS_REL_PATH="`dirname \"$0\"`"
+    OASYS_ABS_PATH="`( cd \"$OASYS_REL_PATH\" && pwd )`"
+    if [ -z "$OASYS_ABS_PATH" ] ; then
+      exit 1
+    fi
+    OASYS_BIN=${OASYS_ABS_PATH}
+    CUR_DIR=$(pwd)
+    cd ${OASYS_BIN}/../
+    bin/clean
+    rm -rf repos/*
+    cd ${CUR_DIR}
+    sed -i '/oasys/d' ~/.bashrc
+    sed -i '/OASYS/d' ~/.bashrc
+    printf '\n%s \n\n' 'OASYS has been uninstalled :-( .\nPlease restart your terminal for changes to be registered.'
+  else
+    printf '\n%s\n' 'OASYS is not installed on your system.'
+fi
+
+exit
