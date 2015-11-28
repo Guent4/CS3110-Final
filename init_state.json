@@ -1,7 +1,0 @@
-{
-  "config": {
-    "repo_dir": "/home/vagrant/test_proj/",
-    "current_branch": "master"
-  },
-  "tree": { "master": [] }
-}
