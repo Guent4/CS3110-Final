@@ -88,7 +88,7 @@ let arg_num_expected =
       ((STATUS,EMPTY),[0]);
       ((ADD,EMPTY),[-1]);     ((ADD,ALL),[0]);
       ((COMMIT,MSG),[1]);
-      ((BRANCH,EMPTY),[1]);
+      ((BRANCH,EMPTY),[0]);   ((BRANCH,EMPTY),[1]);
       ((RESET,FILE),[-1]);    ((RESET,BNCH),[1]);
       ((RM,BNCH),[-1]);       ((RM,FILE),[-1]);
       ((DIFF,EMPTY),[0]);     ((DIFF,FILE),[2]);  ((DIFF,BNCH),[0;2]);

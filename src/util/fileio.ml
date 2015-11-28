@@ -31,3 +31,6 @@ let create_dir dir =
 
 let remove_dir dir =
   FileUtil.rm ~force:FileUtil.Force ~recurse:true [dir]
+
+let remove_file filename =
+  FileUtil.rm [filename]

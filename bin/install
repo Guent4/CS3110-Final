@@ -4,21 +4,26 @@ declare file=~/.bashrc
 declare regex="alias oasys="
 declare file_content=$( cat "${file}" )
 
-if [[ " $file_content " =~ $regex ]] # please note the space before and after the file content
+if [[ " $file_content " =~ $regex ]]
   then
     printf '\n%s\n' 'OASYS is already installed on your system.'
   else
-    printf '%s' 'Installing OASYS on your system...'
-    OASYS_REL_PATH="`dirname \"$0\"`"              # relative
-    OASYS_ABS_PATH="`( cd \"$OASYS_REL_PATH\" && pwd )`"  # absolutized and normalized
+    printf '\n%s\n' 'Installing OASYS on your system...'
+    opam install fileutils
+    opam install cohttp
+    OASYS_REL_PATH="`dirname \"$0\"`"
+    OASYS_ABS_PATH="`( cd \"$OASYS_REL_PATH\" && pwd )`"
     if [ -z "$OASYS_ABS_PATH" ] ; then
-      # error; for some reason, the path is not accessible
-      # to the script (e.g. permissions re-evaled after suid)
-      exit 1  # fail
+      exit 1
     fi
-    OASYS_DIR=${OASYS_ABS_PATH}
-    printf '\nalias oasys="%s"\nOASYS_SRC=%s\nOASYS_ROOT=%s' ${OASYS_DIR}/oasys ${OASYS_DIR}/../src ${OASYS_DIR}/../ >> ~/.bashrc
-    printf '\nInstallation Successful.\nPlease restart terminal for changes to be registered.\n\n'
+    OASYS_BIN=${OASYS_ABS_PATH}
+    printf '\nalias oasys="%s"\nalias oasys_uninstall="%s"\nOASYS_HOME=%s' ${OASYS_BIN}/oasys ${OASYS_BIN}/uninstall ${OASYS_BIN}/../ >> ~/.bashrc
+    CUR_DIR=$(pwd)
+    cd ${OASYS_BIN}/../
+    bin/clean
+    bin/compile
+    cd ${CUR_DIR}
+    printf '\n\n%s\n%s\n' 'Installation Successful' 'Please restart your terminal for changes to be registered.'
 fi
 
 exit

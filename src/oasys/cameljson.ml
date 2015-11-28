@@ -84,12 +84,13 @@ let deserialize_state state =
   {config= deserialize_config (state |> member "config");
   tree= deserialize_tree (state |> member "tree")}
 
+let serialize state filename =
+  let state_json = serialize_state state in
+  let state_str = Yojson.Basic.pretty_to_string state_json in
+  let () = Fileio.write_str filename state_str in
+  ()
+
 let deserialize filename =
   let json = Yojson.Basic.from_file filename in
   let state = deserialize_state json in
   state
-
-let serialize state filename =
-  let state_json = serialize_state state in
-  let state_str = Yojson.Basic.pretty_to_string state_json in
-  Fileio.write_str filename state_str

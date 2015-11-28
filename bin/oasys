@@ -1,7 +1,5 @@
 #!/bin/bash
 
-printf "\nRepository Directory: %s\n" "$(pwd)"
-
 types="$(pwd)/ "
 
 while [ $# -gt 0 ]
@@ -24,8 +22,6 @@ if [ -z "$OASYS_ABS_PATH" ] ; then
   exit 1  # fail
 fi
 OASYS_DIR=${OASYS_ABS_PATH}
-
-printf "\nOASYS_HOME: %s\n" ${OASYS_DIR}
 
 cd ${OASYS_DIR}/../
 
