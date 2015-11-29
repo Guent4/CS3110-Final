@@ -26,7 +26,7 @@ let to_string_branch branch =
 
 let to_string_branches tree current_branch =
   CommitTree.fold
-  (fun k _ a -> a ^ "\n" ^ if (k = current_branch) then "*"^k else k)
+  (fun k _ a -> a ^ if (k = current_branch) then "* "^k^"\n" else " "^k^"\n")
   tree ""
 
 let get_config config =
