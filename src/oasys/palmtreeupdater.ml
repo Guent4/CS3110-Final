@@ -61,6 +61,11 @@ let abbrev_files repo_dir files =
   []
   files
 
+let copy_over_files repo_dir committed source_dir target_dir =
+  List.iter
+  (fun x -> Fileio.copy_file source_dir x target_dir)
+  (abbrev_files repo_dir committed)
+
 let init tree config repo_dir current_branch =
   let work_dir = get_work_dir repo_dir in
   match Fileio.file_exists (repo_dir ^ oasys_dir) with
@@ -184,13 +189,10 @@ let commit tree config repo_dir current_branch msg =
     | true ->
       let id = gen_hash (tree,config) in
       let committed = (committed |-| removed) |+| added in
-      let commit_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
+      let source_dir = repo_dir in
+      let target_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
       let () = Fileio.create_dir (repo_dir ^ oasys_dir ^ id ^ "/") in
-      let () =
-        List.iter
-        (fun x -> Fileio.copy_file repo_dir x commit_dir)
-        (abbrev_files repo_dir committed)
-      in
+      let () = copy_over_files repo_dir committed source_dir target_dir in
       let head = (id,committed) in
       let index = ([],[]) in
       let branch = (id,msg,committed) :: branch in
@@ -246,13 +248,16 @@ let checkout tree config repo_dir current_branch branch_name =
     let tree = {tree with work_dir=work_dir} in
     (tree,config, Failure (Feedback.branch_does_not_exist branch_name))
   | true ->
-    let branch = CommitTree.find current_branch commit_tree in
+    let branch = CommitTree.find branch_name commit_tree in
     (
     match branch with
-    | (id,_,commits) :: prev_commits ->
+    | (id,_,committed) :: prev_commits ->
       let config = {config with current_branch=branch_name} in
+      let source_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
+      let target_dir = repo_dir in
+      let () = copy_over_files repo_dir committed source_dir target_dir in
       let tree = {
-        head= (id,commits);
+        head= (id,committed);
         index= tree.index;
         work_dir= work_dir;
         commit_tree= commit_tree
@@ -373,9 +378,9 @@ let status tree config repo_dir current_branch =
     )
     ^
     (
-      if (List.length (work_dir |-| added) > 0) then
+      let untracked_files = ((work_dir |-| committed) |-| added) |-| removed in
+      if (List.length (untracked_files) > 0) then
       (
-        let untracked_files = ((work_dir |-| committed) |-| added) |-| removed in
         let untracked_files = abbrev_files repo_dir untracked_files in
         "Untracked files:\n" ^ (Listops.to_string (untracked_files) "\t" "\n\t" "\n")
       )
