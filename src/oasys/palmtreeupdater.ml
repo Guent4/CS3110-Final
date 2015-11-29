@@ -66,6 +66,15 @@ let copy_over_files repo_dir committed source_dir target_dir =
   (fun x -> Fileio.copy_file source_dir x target_dir)
   (abbrev_files repo_dir committed)
 
+let rec find_commit hash = function
+ | [] -> None
+ | (id,msg,committed)::prev_commits ->
+  (
+    match id = hash with
+    | false -> find_commit hash prev_commits
+    | true -> Some ( (id,msg,committed), prev_commits )
+  )
+
 let init tree config repo_dir current_branch =
   let work_dir = get_work_dir repo_dir in
   match Fileio.file_exists (repo_dir ^ oasys_dir) with
@@ -176,10 +185,12 @@ let reset_file tree config repo_dir current_branch file_name =
 
 let commit tree config repo_dir current_branch msg =
   let work_dir = get_work_dir repo_dir in
+  let (id,_) = tree.head in
   let commit_tree = tree.commit_tree in
   let branch = CommitTree.find current_branch commit_tree in
-  match branch with
-  | (_,_,committed) :: prev_commits ->
+  match find_commit id branch with
+  | None -> failwith ""
+  | Some ((id',msg',committed'),prev_commits) ->
     (
     let (added, removed) = tree.index in
     match max (List.length added) (List.length removed) > 0 with
@@ -188,14 +199,14 @@ let commit tree config repo_dir current_branch msg =
       (tree, config, Failure Feedback.no_changes)
     | true ->
       let id = gen_hash (tree,config) in
-      let committed = (committed |-| removed) |+| added in
+      let committed = (committed' |-| removed) |+| added in
       let source_dir = repo_dir in
       let target_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
       let () = Fileio.create_dir (repo_dir ^ oasys_dir ^ id ^ "/") in
       let () = copy_over_files repo_dir committed source_dir target_dir in
       let head = (id,committed) in
       let index = ([],[]) in
-      let branch = (id,msg,committed) :: branch in
+      let branch = (id,msg,committed) :: (id',msg',committed') :: prev_commits in
       let commit_tree = CommitTree.add current_branch branch commit_tree in
       let tree = {
         head=head;
@@ -205,7 +216,6 @@ let commit tree config repo_dir current_branch msg =
       } in
       (tree, config, Success (Feedback.changes_committed current_branch id msg))
     )
-  | _ -> (tree,config,Failure Feedback.no_repo)
 
 let log tree config repo_dir current_branch =
   let work_dir = get_work_dir repo_dir in
@@ -299,64 +309,65 @@ let file_batch_op op tree config repo_dir current_branch files =
   in
   (tree',config',Success feedback)
 
-(* let rec find_branch branch hash =
-  match branch with
-  | Changes(_,_) :: commits -> find_branch commits hash
-  | Commit(id,msg,_) :: prev_commits ->
-    (
-      match id = hash with
-      | true -> Some branch
-      | false -> find_branch prev_commits hash
-    )
-  | _ -> None *)
+let reset_branch_soft tree config repo_dir current_branch hash =
+  let work_dir = get_work_dir repo_dir in
+  let commit_tree = tree.commit_tree in
+  let branch = CommitTree.find current_branch commit_tree in
+  match find_commit hash branch with
+  | None ->
+    let tree = {tree with work_dir=work_dir} in
+    (tree,config,Failure ("No such commit with hash " ^ hash) )
+  | Some ((id,msg,committed),_) ->
+    let tree = {
+      head= (id,committed);
+      index= tree.index;
+      work_dir= work_dir;
+      commit_tree= commit_tree
+    } in
+    (tree,config,Success ("HEAD was reset to " ^ hash))
 
+let reset_branch_mixed tree config repo_dir current_branch hash =
+  let work_dir = get_work_dir repo_dir in
+  let commit_tree = tree.commit_tree in
+  let branch = CommitTree.find current_branch commit_tree in
+  match find_commit hash branch with
+  | None ->
+    let tree = {tree with work_dir=work_dir} in
+    (tree,config,Failure ("No such commit with hash " ^ hash) )
+  | Some ((id,msg,committed),_) ->
+    let (added,removed) = tree.index in
+    let added = added |-| committed in
+    let removed = removed |-| committed in
+    let tree = {
+      head= (id,committed);
+      index= (added,removed);
+      work_dir= work_dir;
+      commit_tree= commit_tree
+    } in
+    (tree,config,Success ("HEAD was reset to " ^ hash))
 
-let reset_branch tree config repo_dir current_branch hash = failwith "not implemented"
-  (* let branch = PalmTree.find current_branch tree in
-  match hash with
-  | "HEAD" ->
-    (
-    match branch with
-    | Changes(_,_) :: Commit (id,msg,committed) :: prev_commits ->
-      let commit_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
-      let () =
-        List.iter
-        (fun x -> Fileio.copy_file (commit_dir ^ x) repo_dir)
-        committed
-      in
-      let added = [] in
-      let removed = [] in
-      let branch' =
-        Changes(added,removed) ::
-        Commit(id,msg,committed) ::
-        prev_commits
-      in
-      let tree' = PalmTree.add current_branch branch' tree in
-      (tree', config, Success ("Branch has been successfully reset to " ^ hash))
-    | _ -> assert false
-    )
-  | _ ->
-    (
-    match find_branch branch hash with
-    | None -> (tree,config,Failure "No such commit exists in branch")
-    | Some (Commit(id,msg,committed) :: prev_commits) ->
-      let commit_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
-      let () =
-        List.iter
-        (fun x -> Fileio.copy_file (commit_dir ^ x) repo_dir)
-        committed
-      in
-      let added = [] in
-      let removed = [] in
-      let branch' =
-        Changes(added,removed) ::
-        Commit(id,msg,committed) ::
-        prev_commits
-      in
-      let tree' = PalmTree.add current_branch branch' tree in
-      (tree', config, Success ("Branch has been successfully reset to " ^ hash))
-    | _ -> assert false
-    ) *)
+let reset_branch_hard tree config repo_dir current_branch hash =
+  let work_dir = get_work_dir repo_dir in
+  let commit_tree = tree.commit_tree in
+  let branch = CommitTree.find current_branch commit_tree in
+  match find_commit hash branch with
+  | None ->
+    let tree = {tree with work_dir=work_dir} in
+    (tree,config,Failure ("No such commit with hash " ^ hash) )
+  | Some ((id,msg,committed),_) ->
+    let (added,removed) = tree.index in
+    let added = added |-| committed in
+    let removed = removed |-| committed in
+    let source_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
+    let target_dir = repo_dir in
+    let () = copy_over_files repo_dir committed source_dir target_dir in
+    let tree = {
+      head= (id,committed);
+      index= (added,removed);
+      work_dir= work_dir;
+      commit_tree= commit_tree
+    } in
+    (tree,config,Success ("HEAD was reset to " ^ hash))
 
 let status tree config repo_dir current_branch =
   let work_dir = get_work_dir repo_dir in
@@ -399,16 +410,20 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
   | (INIT,[EMPTY],[]) -> init tree config repo_dir current_branch
   | (ADD,[EMPTY],files) -> file_batch_op add tree config repo_dir current_branch files
   | (ADD,[ALL],[]) -> file_batch_op add tree config repo_dir current_branch tree.work_dir
+  | (RM,[EMPTY],files) -> file_batch_op reset_file tree config repo_dir current_branch files
   | (RM,[FILE],files) -> file_batch_op rm_file tree config repo_dir current_branch files
   | (RM,[BNCH],[branch_name]) -> rm_branch tree config repo_dir current_branch branch_name
   | (RESET,[FILE],files) -> file_batch_op reset_file tree config repo_dir current_branch files
-  | (RESET,[BNCH],[hash]) -> reset_branch tree config repo_dir current_branch hash
-  | (COMMIT,[MSG],[message]) -> commit tree config repo_dir current_branch message
-  | (LOG,[EMPTY],[]) -> log tree config repo_dir current_branch
+  | (RESET,[BNCH],[hash]) -> reset_branch_mixed tree config repo_dir current_branch hash
+  | (RESET,[HARD],[hash]) -> reset_branch_hard tree config repo_dir current_branch hash
+  | (RESET,[MIXED],[hash]) -> reset_branch_mixed tree config repo_dir current_branch hash
+  | (RESET,[SOFT],[hash]) -> reset_branch_soft tree config repo_dir current_branch hash
   | (BRANCH,[EMPTY],[]) -> get_branches tree config repo_dir current_branch
   | (BRANCH,[EMPTY],[branch_name]) -> branch tree config repo_dir current_branch branch_name
   | (CHECKOUT,[EMPTY],[branch_name]) -> checkout tree config repo_dir current_branch branch_name
+  | (COMMIT,[MSG],[message]) -> commit tree config repo_dir current_branch message
   | (STATUS,[EMPTY],[]) -> status tree config repo_dir current_branch
+  | (LOG,[EMPTY],[]) -> log tree config repo_dir current_branch
   | (HELP,_,_) -> (tree, config, Success Feedback.empty)
   | _ -> (tree,config,Failure Feedback.no_support)
 
