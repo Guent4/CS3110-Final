@@ -347,29 +347,25 @@ let status tree config repo_dir current_branch =
   | (_,msg,_) :: prev_commits ->
     let (added,removed) = tree.index in
     let feedback = "On branch " ^ current_branch ^ "\n\n" ^ msg ^ "\n\n" ^
-
-
-(
-    if (List.length added > 0) then
-
-    ("Changes to be committed:\n" ^ (Listops.to_string (added) "\t" "\n\t" "\n\n" ) )
-
-  else
-
-    ("Nothing to commit\n" ) )
-
-^
-
     (
-   if (List.length (work_dir |-| added) > 0) then
-(
-    "Untracked files:\n" ^ (Listops.to_string (work_dir |-| added) "\t" "\n\t" "\n")
-)
-    else
-
-    ("Working directory clean" ) )
-  in
-
+      if (List.length added > 0) then
+      (
+        "Changes to be committed:\n" ^
+        (Listops.to_string (added) "\t" "\n\t" "\n\n" )
+      )
+      else
+      ("Nothing to commit\n" )
+    )
+    ^
+    (
+      if (List.length (work_dir |-| added) > 0) then
+      (
+        "Untracked files:\n" ^ (Listops.to_string (work_dir |-| added) "\t" "\n\t" "\n")
+      )
+      else
+      ("Working directory clean" )
+    )
+    in
     let tree = {tree with work_dir = work_dir} in
     (tree,config,Success feedback)
   | _ -> (tree,config,Failure "fatal: Not an oasys repository: .oasys")
