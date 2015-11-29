@@ -129,6 +129,25 @@ let rm_file tree config repo_dir current_branch file_name =
     let tree = {tree with work_dir=work_dir} in
     (tree, config, Failure (Feedback.cannot_find file_name))
   | true ->
+    let () = Fileio.remove_file file_name in
+    let (added,removed) = tree.index in
+    let added = added |-| [file_name] in
+    let removed = removed |+| [file_name] in
+    let tree = {
+      head=tree.head;
+      index=(added,removed);
+      work_dir=work_dir;
+      commit_tree=tree.commit_tree
+    } in
+    (tree, config, Success (Feedback.file_removed file_name) )
+
+let rm_file_cached tree config repo_dir current_branch file_name =
+  let work_dir = get_work_dir repo_dir in
+  match List.mem file_name work_dir with
+  | false ->
+    let tree = {tree with work_dir=work_dir} in
+    (tree, config, Failure (Feedback.cannot_find file_name))
+  | true ->
     let (added,removed) = tree.index in
     let added = added |-| [file_name] in
     let removed = removed |+| [file_name] in
@@ -198,6 +217,15 @@ let commit tree config repo_dir current_branch msg =
       let tree = {tree with work_dir=work_dir} in
       (tree, config, Failure Feedback.no_changes)
     | true ->
+      let changed = added |-| (added |-| committed') in
+      let created = added |-| committed' in
+      let deleted = removed in
+      let commit_result =
+        "\n" ^
+        string_of_int (List.length changed) ^ " file(s) changed\n" ^
+        string_of_int (List.length created) ^ " file(s) created\n" ^
+        string_of_int (List.length deleted) ^ " file(s) deleted\n"
+      in
       let id = gen_hash (tree,config) in
       let committed = (committed' |-| removed) |+| added in
       let source_dir = repo_dir in
@@ -214,7 +242,7 @@ let commit tree config repo_dir current_branch msg =
         work_dir=work_dir;
         commit_tree=commit_tree
       } in
-      (tree, config, Success (Feedback.changes_committed current_branch id msg))
+      (tree, config, Success ((Feedback.changes_committed current_branch id msg) ^ commit_result))
     )
 
 let log tree config repo_dir current_branch =
