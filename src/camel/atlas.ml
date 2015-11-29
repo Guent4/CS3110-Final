@@ -132,6 +132,6 @@ let arg_num_default =
   | 10 -> Printf.printf "FAILURE: \"%s\" is not a command; command-search cannot be completed.\nTry general-search without \"--cmd\" option.\n" s1
   | 11 -> Printf.printf "UNSUCCESSFUL: Cannot find the command \"%s\" in the documentation.\n" s1
   | 12 -> Printf.printf "UNSUCCESSFUL: Cannot find search in the documentation\n"
-  | 13 -> Printf.printf "FAILURE: Input was not a number.\n"
+  | 13 -> Printf.printf "FAILURE: Not a valid option.\n"
   | 14 -> Printf.printf "UNSUCCESSFUL: Apologies. Unable to find topic in documentation.\n"
   | _ -> Printf.printf "\n"
