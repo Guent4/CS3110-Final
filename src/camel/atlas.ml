@@ -50,7 +50,7 @@ let detranslate_cmd (cmd:cmd) : string =
   | INVALID_CMD s   -> s
 
 let opt_str_list = ["--message";"--all";"--set-upstream";"--delete";"--remove";
-  "--rename";"--branch";"--file"]
+  "--rename";"--branch";"--file";"--hard";"--mixed";"--soft"]
 
 let translate_opt (opt_string:string) : opt =
   match opt_string with
@@ -61,6 +61,9 @@ let translate_opt (opt_string:string) : opt =
   | "-rm" | "--remove"          -> REMOVE
   | "-rn" | "--rename"          -> RENAME
   | "-b" | "--branch"           -> BNCH
+  | "--hard"                    -> HARD
+  | "--mixed"                   -> MIXED
+  | "--soft"                    -> SOFT
   | "-f" | "--file"             -> FILE
   | "--cmd"                     -> CMD
   | ""                          -> EMPTY
@@ -76,6 +79,9 @@ let detranslate_opt (opt:opt) : string =
   | RENAME          -> "-rn or --rename"
   | BNCH            -> "-b or --branch"
   | FILE            -> "-f or --file"
+  | HARD            -> "--hard"
+  | MIXED           -> "--mixed"
+  | SOFT            -> "--soft"
   | CMD             -> "--cmd"
   | EMPTY           -> "<no options given>"
   | INVALID_OPT s   -> "s"

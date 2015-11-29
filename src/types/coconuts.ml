@@ -11,7 +11,7 @@ type arg = string
  *  "git add -a")
  *)
 type opt =  MSG | ALL | SETUPSTREAM | DELETE | REMOVE | RENAME | BNCH | FILE
-  | CMD | EMPTY | INVALID_OPT of string
+  | HARD | MIXED | SOFT | CMD | EMPTY | INVALID_OPT of string
 
 (* This is the type that the user input will be parsed into.  The actual commands
  *  described in the cmd_expr will be executed later in OASys
@@ -36,7 +36,7 @@ type committed = string list
 
 type commit = id * msg * committed
 
-type head = id * committed
+type head = commit
 
 type index = added * removed
 
