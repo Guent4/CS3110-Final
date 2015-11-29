@@ -26,8 +26,17 @@ let initialize_context repo_path repo_state_path =
   let repo_dir = repo_path in
   let current_branch = "master" in
   let config = {repo_dir=repo_dir; current_branch=current_branch} in
-  let tree = PalmTree.empty in
-  let tree = PalmTree.add current_branch [] tree in
+  let head = ("",[]) in
+  let index = ([],[]) in
+  let work_dir = [] in
+  let commit_tree = CommitTree.empty in
+  let commit_tree = CommitTree.add current_branch [] commit_tree in
+  let tree = {
+    head=head;
+    index=index;
+    work_dir=work_dir;
+    commit_tree=commit_tree
+  } in
   let state = {config=config; tree=tree} in
   let () = Cameljson.serialize state repo_state_path in
   ()

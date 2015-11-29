@@ -24,10 +24,8 @@ type config = {repo_dir: file_path; current_branch: string}
 
 type feedback = Success of string | Failure of string
 
-(* The commit id *)
 type id = string
 
-(* The commit message *)
 type msg = string
 
 type added = string list
@@ -36,13 +34,24 @@ type removed = string list
 
 type committed = string list
 
-type node = Commit of id * msg * committed | Changes of added * removed
+type commit = id * msg * committed
 
-type branch = node list
+type head = id * committed
 
-module PalmTree = Map.Make (struct type t = string let compare a b = Pervasives.compare a b end)
+type index = added * removed
 
-type palm_tree = branch PalmTree.t
+type work_dir = string list
+
+type branch = commit list
+
+module CommitTree = Map.Make (struct type t = string let compare a b = Pervasives.compare a b end)
+
+type palm_tree = {
+  head: head;
+  index: index;
+  work_dir: work_dir;
+  commit_tree: branch CommitTree.t
+}
 
 type state = {config: config; tree: palm_tree}
 
