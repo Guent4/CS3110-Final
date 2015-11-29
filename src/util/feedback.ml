@@ -4,6 +4,7 @@ let repo_exists = "an oasys repository already exists in this directory"
 let init_commit = "initial commit"
 let repo_initialized repo_dir = "Initialized empty OASYS repository in " ^ repo_dir
 let cannot_find file_name = "fatal: pathspec \'" ^ file_name ^ "\' did not match any files"
+let file_removed file_name = file_name ^ " has been marked for removal"
 let file_added file_name = file_name ^ " has been added"
 let file_reset file_name = file_name ^ " has been reset"
 let file_never_committed file_name = file_name ^ " has never been committed"

@@ -23,8 +23,9 @@ let file_exists path =
 let files_in_dir path =
   FileUtil.ls path
 
-let copy_file file_name target_dir =
-  FileUtil.cp ~recurse:true [file_name] target_dir
+let copy_file abs_path rel_file_name target_dir =
+  let _ = Sys.command("cd " ^ abs_path ^ " && cp -r --parent " ^ rel_file_name ^ " " ^ target_dir) in
+  ()
 
 let create_dir dir =
   FileUtil.mkdir dir

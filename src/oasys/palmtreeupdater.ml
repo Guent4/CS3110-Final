@@ -124,7 +124,7 @@ let rm_file tree config repo_dir current_branch file_name =
       work_dir=work_dir;
       commit_tree=tree.commit_tree
     } in
-    (tree, config, Success (Feedback.file_added file_name) )
+    (tree, config, Success (Feedback.file_removed file_name) )
 
 let rm_branch tree config repo_dir current_branch branch_name =
   let work_dir = get_work_dir repo_dir in
@@ -188,8 +188,8 @@ let commit tree config repo_dir current_branch msg =
       let () = Fileio.create_dir (repo_dir ^ oasys_dir ^ id ^ "/") in
       let () =
         List.iter
-        (fun x -> let () = Printf.printf "\n%s\n" x in let () = Printf.printf "\n%s\n" commit_dir in Fileio.copy_file x commit_dir)
-        committed
+        (fun x -> Fileio.copy_file repo_dir x commit_dir)
+        (abbrev_files repo_dir committed)
       in
       let head = (id,committed) in
       let index = (added,removed) in
@@ -357,15 +357,16 @@ let status tree config repo_dir current_branch =
   let work_dir = get_work_dir repo_dir in
   let branch = CommitTree.find current_branch tree.commit_tree in
   match branch with
-  | (_,msg,_) :: prev_commits ->
+  | (_,msg,committed) :: prev_commits ->
     let (added,removed) = tree.index in
     let feedback = "On branch " ^ current_branch ^ "\n\n" ^ msg ^ "\n\n" ^
     (
       if (List.length added > 0) then
       (
         "Changes to be committed:\n" ^
-        (Listops.to_string (abbrev_files repo_dir added) "\t" "\nadded:\t" "\n\n" ) ^
-        (Listops.to_string (abbrev_files repo_dir removed) "\t" "\ndeleted:\t" "\n\n")
+        (Listops.to_string (abbrev_files repo_dir (added |-| (added |-| committed) ) ) "\t" "\nadded:\t" "\n" ) ^
+        (Listops.to_string (abbrev_files repo_dir (added |-| committed) ) "\t" "\nnew file:\t" "\n" ) ^
+        (Listops.to_string (abbrev_files repo_dir removed) "\t" "\ndeleted:\t" "\n")
       )
       else
       ("Nothing to commit\n" )

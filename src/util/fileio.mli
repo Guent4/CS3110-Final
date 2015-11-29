@@ -28,7 +28,7 @@ val file_exists : string -> bool
 
 val files_in_dir : string -> string list
 
-val copy_file : string -> string -> unit
+val copy_file : string -> string -> string -> unit
 
 val create_dir : string -> unit
 
