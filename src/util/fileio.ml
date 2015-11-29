@@ -24,7 +24,7 @@ let files_in_dir path =
   FileUtil.ls path
 
 let copy_file file_name target_dir =
-  FileUtil.cp [file_name] target_dir
+  FileUtil.cp ~recurse:true [file_name] target_dir
 
 let create_dir dir =
   FileUtil.mkdir dir

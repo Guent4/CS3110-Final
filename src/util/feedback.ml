@@ -18,3 +18,4 @@ let branch_checkedout branch_name = branch_name ^ " has been successfully checke
 let branch_does_not_exist branch_name = "error: pathspec \'"^branch_name^"\' did not match any branch(es) known to oasys."
 let no_support = "Sorry, we don't support that command"
 let no_repo = "fatal: Not an oasys repository: .oasys"
+let branch_removed branch_name = branch_name ^ " has been removed"

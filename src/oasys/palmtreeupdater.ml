@@ -70,7 +70,7 @@ let init tree config repo_dir current_branch =
       let () = Fileio.create_dir (repo_dir ^ oasys_dir ^ id ^ "/") in
       let head = (id,[]) in
       let index = ([],[]) in
-      let branch = [(id, "initial commit", [])] in
+      let branch = [(id, Feedback.init_commit, [])] in
       let commit_tree = CommitTree.add current_branch branch commit_tree in
       let tree = {
         head=head;
@@ -79,7 +79,7 @@ let init tree config repo_dir current_branch =
         commit_tree=commit_tree
       } in
       (tree,config,Success (Feedback.repo_initialized (repo_dir ^ oasys_dir)))
-    | _ -> (tree,config,Failure "fatal: Not an oasys repository: .oasys")
+    | _ -> (tree,config,Failure Feedback.no_repo)
     )
 
 let add tree config repo_dir current_branch file_name =
@@ -140,7 +140,7 @@ let rm_branch tree config repo_dir current_branch branch_name =
         work_dir=work_dir;
         commit_tree=commit_tree
       } in
-      (tree, config, Success (branch_name ^ " has been removed"))
+      (tree, config, Success (Feedback.branch_removed branch_name))
     )
 
 let reset_file tree config repo_dir current_branch file_name =
@@ -159,7 +159,7 @@ let reset_file tree config repo_dir current_branch file_name =
       work_dir=work_dir;
       commit_tree=tree.commit_tree
     } in
-    (tree, config, Success (Feedback.file_added file_name) )
+    (tree, config, Success (Feedback.file_reset file_name) )
 
 let commit tree config repo_dir current_branch msg =
   let work_dir = get_work_dir repo_dir in
@@ -180,7 +180,7 @@ let commit tree config repo_dir current_branch msg =
       let () = Fileio.create_dir (repo_dir ^ oasys_dir ^ id ^ "/") in
       let () =
         List.iter
-        (fun x -> Fileio.copy_file x commit_dir)
+        (fun x -> let () = Printf.printf "\n%s\n" x in let () = Printf.printf "\n%s\n" commit_dir in Fileio.copy_file x commit_dir)
         committed
       in
       let head = (id,committed) in
@@ -250,14 +250,14 @@ let checkout tree config repo_dir current_branch branch_name =
         commit_tree= commit_tree
       } in
       (tree,config, Success ("Switched to branch \'" ^ branch_name ^ "\'"))
-    | _ -> (tree,config,Failure "fatal: Not an oasys repository: .oasys")
+    | _ -> (tree,config,Failure (Feedback.no_repo))
     )
 
 
 let file_batch_op op tree config repo_dir current_branch files =
   let files' =
     List.fold_left
-    (fun a x -> a |+| (get_files x tree.work_dir))
+    (fun a x -> a |+| (get_files (repo_dir ^ "\\(" ^ x ^ "\\)") tree.work_dir) )
     []
     files
   in
@@ -356,7 +356,8 @@ let status tree config repo_dir current_branch =
       if (List.length added > 0) then
       (
         "Changes to be committed:\n" ^
-        (Listops.to_string (added) "\t" "\n\t" "\n\n" )
+        (Listops.to_string (added) "\t" "\nadded:\t" "\n\n" ) ^
+        (Listops.to_string (removed) "\t" "\ndeleted:\t" "\n\n")
       )
       else
       ("Nothing to commit\n" )
@@ -365,7 +366,7 @@ let status tree config repo_dir current_branch =
     (
       if (List.length (work_dir |-| added) > 0) then
       (
-        "Untracked files:\n" ^ (Listops.to_string (work_dir |-| added) "\t" "\n\t" "\n")
+        "Untracked files:\n" ^ (Listops.to_string ((work_dir |-| added) |-| removed) "\t" "\n\t" "\n")
       )
       else
       ("Working directory clean" )
