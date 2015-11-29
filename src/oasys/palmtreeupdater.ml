@@ -192,7 +192,7 @@ let commit tree config repo_dir current_branch msg =
         (abbrev_files repo_dir committed)
       in
       let head = (id,committed) in
-      let index = (added,removed) in
+      let index = ([],[]) in
       let branch = (id,msg,committed) :: branch in
       let commit_tree = CommitTree.add current_branch branch commit_tree in
       let tree = {
@@ -361,12 +361,12 @@ let status tree config repo_dir current_branch =
     let (added,removed) = tree.index in
     let feedback = "On branch " ^ current_branch ^ "\n\n" ^ msg ^ "\n\n" ^
     (
-      if (List.length added > 0) then
+      if ( max (List.length added) (List.length removed) > 0 ) then
       (
         "Changes to be committed:\n" ^
         (Listops.to_string (abbrev_files repo_dir (added |-| (added |-| committed) ) ) "\t" "\nadded:\t" "\n" ) ^
         (Listops.to_string (abbrev_files repo_dir (added |-| committed) ) "\t" "\nnew file:\t" "\n" ) ^
-        (Listops.to_string (abbrev_files repo_dir removed) "\t" "\ndeleted:\t" "\n")
+        (Listops.to_string (abbrev_files repo_dir removed) "\t" "\ndeleted:\t" "\n\n")
       )
       else
       ("Nothing to commit\n" )
@@ -375,7 +375,7 @@ let status tree config repo_dir current_branch =
     (
       if (List.length (work_dir |-| added) > 0) then
       (
-        let untracked_files = (work_dir |-| added) |-| removed in
+        let untracked_files = ((work_dir |-| committed) |-| added) |-| removed in
         let untracked_files = abbrev_files repo_dir untracked_files in
         "Untracked files:\n" ^ (Listops.to_string (untracked_files) "\t" "\n\t" "\n")
       )
