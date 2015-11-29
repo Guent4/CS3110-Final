@@ -1,64 +1,66 @@
 OASys Documentation
 
 
-<INIT> - Create a new local repository.
+<INIT> - This command allows you to create a local OASys repository on your computer. By doing this, you will now be able to make commits and control the state of your documents.
 
 
-<ADD> - Add files to staging.
-  <-a or --all> - This selects all documents (shortcut: '.').
-  <filename> - This adds specific file.
+<ADD> - This command adds files to the staging area, which you can then push to the remote repository.
+  <-a or --all> - This option selects all the untracked files you wish to push to the remote repository.
 
 
-<COMMIT> - This is to commit changes.
-  <-m or --message> - Include messages.
+<COMMIT> - This command commits the untracked files that you have already added to the staging area. You should include a message to keep track of what changes you have made to the files.
+  <-m or --message> - This options allows you to write a message that will be included in your commit history, please use "" when typing your message.
 
 
-<PUSH> - Push changes to remote.
+<PUSH> - This command pushes the files in your staging area that you have already added and committed to the remote repository.
 
 
-<PULL> - Pull changes from remote.
+<PULL> - This command pulls the current version of the fiels in your remote repository to your local machine.
 
 
-<BRANCH> - List all branches in the repository.
-  <-d> - Delete specified branch.
+<BRANCH> - This command allows you to create a new branch to work off of. A branch enables you to receive thee current state of the files from the remote repository and change them without affecting the master repository itself.
+  <-b or --branch> - This option allows you to create a new branch.
 
 
-<CHECKOUT> - Create a new branch and switch to it.
-  <branchname> - This switches to new branch.
+<CHECKOUT> - This command allows you to switch to a different branch and have access to the current files in that branch.
+  <-b or --branch> - This option allows you to switch to the branch that you specify.
 
 
-<MERGE> - Merge branch into active repository.
-  <branchname> - Branch to merge from.
+<MERGE> - Merge branch into active repository. (*NOT DONE*)
 
 
 <DIFF> - View all merge conflicts. (*NOT DONE*)
+  <--file> - DESCRIPTION
+  <-b or --branch> - DESCRIPTION
 
 
-<STATUS> - List files that have changed, need to be added or need to be committed.
+<STATUS> - This command lists the files that have changed, and thus need to be added and then committed in order to push to the remote repository.
 
 
-<CONFIG> - Configure author name and email to be used with commits. (*NOT DONE*)
+<CONFIG> - (*NOT DONE*)
 
 
-<HELP> - Display help information about OASys. (*NOT DONE*)
-  <command> - Specific command to receive help about.
+<HELP> - This command displays help information about OASys to the terminal. You are able to receive help for specific commands by using the --cmd options, or you can receive more direct help for topics such as "Adding a Branch", or the "Proper Way to Push".
+  <--cmd> - This option specifies a command that you would like to receive help about.
 
 
-<CLONE> - Create a working copy of local repository.
-  <path> - File path to clone from.
+<CLONE> - (*NOT DONE*)
 
 
-<LOG> - Log of all commits.
+<LOG> - This command displays a log of all the commits you have made.
 
 
-<RESET> - Drop all local changes and fetch latest history from server. (*NOTDONE*)
+<RESET> - This command drops all the local changes you have made and retrieves the most current version of your fiels from the remote repository.
+  <--file> - DESCRIPTION
+  <-b or --branch> - DESCRIPTION (*NOT DONE*)
 
 
-<RM> - Remove files from working tree.
-  <--file> - The file to remove.
+<RM> - This command removes files or branches from the versioning structure.
+  <--file> - This option specifies the file to remove.
+  <-b or --branch> - This option specifies the branch to remove
 
 
-<QUIT> - Exits the OASys program.
+<QUIT> - This command exits the OASys program.
 
 
 <INVALID_CMD> - Invalid Command.

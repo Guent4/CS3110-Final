@@ -42,7 +42,7 @@ cs3110 compile src/oasys/palmtreeupdater -I src/types/ -I src/util/
 printf "${GREEN}compiling ${CYAN}oasys.ml${NC}\n"
 cs3110 compile src/oasys/oasys -I src/types/ -I src/util/
 # camelrider
-printf "${L_BLUE}Compiling CAMEL RIDER\n"
+printf "${L_BLUE}Compiling CAMELRIDER\n"
 printf "${GREEN}compiling ${CYAN}camelrider.ml${NC}\n"
 cs3110 compile src/camelrider/camelrider -I src/types/ -I src/util/ -I src/oasys/
 # main
