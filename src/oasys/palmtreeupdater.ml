@@ -435,7 +435,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
   | (INIT,[EMPTY],[]) -> init tree config repo_dir current_branch
   | (ADD,[EMPTY],files) -> file_batch_op add tree config repo_dir current_branch files
   | (ADD,[ALL],[]) -> file_batch_op add tree config repo_dir current_branch tree.work_dir
-  | (RM,[EMPTY],files) -> file_batch_op reset_file tree config repo_dir current_branch files
+  | (RM,[EMPTY],files) -> file_batch_op rm_file tree config repo_dir current_branch files
   | (RM,[FILE],files) -> file_batch_op rm_file tree config repo_dir current_branch files
   | (RM,[BNCH],[branch_name]) -> rm_branch tree config repo_dir current_branch branch_name
   | (RESET,[FILE],files) -> file_batch_op reset_file tree config repo_dir current_branch files

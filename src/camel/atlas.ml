@@ -96,6 +96,7 @@ let arg_num_expected =
       ((COMMIT,MSG),[1]);
       ((BRANCH,EMPTY),[-2]);
       ((RESET,FILE),[-1]);    ((RESET,BNCH),[1]);
+      ((RESET,HARD),[1]);     ((RESET,SOFT),[1]); ((RESET,MIXED),[1]);
       ((RM,BNCH),[-1]);       ((RM,FILE),[-1]);
       ((CHECKOUT,EMPTY),[1]);
       ((DIFF,EMPTY),[0]);     ((DIFF,FILE),[2]);  ((DIFF,BNCH),[0;2]);
