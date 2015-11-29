@@ -36,7 +36,7 @@ type committed = string list
 
 type commit = id * msg * committed
 
-type head = id * committed
+type head = commit
 
 type index = added * removed
 

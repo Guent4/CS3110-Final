@@ -19,14 +19,6 @@ let serialize_commit commit =
 let serialize_branch branch =
   `List (List.rev (List.fold_left (fun a x -> serialize_commit x :: a) [] branch))
 
-let serialize_head head =
-  let (id,committed) = head in
-  `Assoc
-  [
-  ("id", serialize_string id);
-  ("committed", serialize_string_list committed)
-  ]
-
 let serialize_index index =
   let (added,removed) = index in
   `Assoc
@@ -41,7 +33,7 @@ let serialize_commit_tree commit_tree =
 let serialize_palm_tree palm_tree =
   `Assoc
   [
-  ("head", serialize_head palm_tree.head);
+  ("head", serialize_commit palm_tree.head);
   ("index", serialize_index palm_tree.index);
   ("work_dir", serialize_string_list palm_tree.work_dir);
   ("commit_tree", serialize_commit_tree palm_tree.commit_tree)
@@ -78,15 +70,6 @@ let deserialize_branch branch =
   let branch = (branch |> to_list) in
   List.rev (List.fold_left (fun a x -> deserialize_commit x :: a) [] branch)
 
-let deserialize_head head =
-  match head with
-  | `Assoc x ->
-    (
-      deserialize_string (List.assoc "id" x),
-      deserialize_string_list (List.assoc "committed" x)
-    )
-  | _ -> assert false
-
 let deserialize_index index =
   match index with
   | `Assoc x ->
@@ -106,7 +89,7 @@ let deserialize_palm_tree palm_tree =
   match palm_tree with
   | `Assoc x ->
     {
-      head= deserialize_head (List.assoc "head" x);
+      head= deserialize_commit (List.assoc "head" x);
       index= deserialize_index (List.assoc "index" x);
       work_dir= deserialize_string_list (List.assoc "work_dir" x);
       commit_tree= deserialize_commit_tree (List.assoc "commit_tree" x)

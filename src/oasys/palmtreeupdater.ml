@@ -90,9 +90,9 @@ let init tree config repo_dir current_branch =
       let () = Fileio.create_dir (repo_dir ^ oasys_dir) in
       let id = gen_hash (tree,config) in
       let () = Fileio.create_dir (repo_dir ^ oasys_dir ^ id ^ "/") in
-      let head = (id,[]) in
+      let head = (id, Feedback.init_commit, []) in
       let index = ([],[]) in
-      let branch = [(id, Feedback.init_commit, [])] in
+      let branch = [head] in
       let commit_tree = CommitTree.add current_branch branch commit_tree in
       let tree = {
         head=head;
@@ -185,7 +185,7 @@ let reset_file tree config repo_dir current_branch file_name =
 
 let commit tree config repo_dir current_branch msg =
   let work_dir = get_work_dir repo_dir in
-  let (id,_) = tree.head in
+  let (id,_,_) = tree.head in
   let commit_tree = tree.commit_tree in
   let branch = CommitTree.find current_branch commit_tree in
   match find_commit id branch with
@@ -204,9 +204,9 @@ let commit tree config repo_dir current_branch msg =
       let target_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
       let () = Fileio.create_dir (repo_dir ^ oasys_dir ^ id ^ "/") in
       let () = copy_over_files repo_dir committed source_dir target_dir in
-      let head = (id,committed) in
+      let head = (id,msg,committed) in
       let index = ([],[]) in
-      let branch = (id,msg,committed) :: (id',msg',committed') :: prev_commits in
+      let branch = head :: (id',msg',committed') :: prev_commits in
       let commit_tree = CommitTree.add current_branch branch commit_tree in
       let tree = {
         head=head;
@@ -261,13 +261,13 @@ let checkout tree config repo_dir current_branch branch_name =
     let branch = CommitTree.find branch_name commit_tree in
     (
     match branch with
-    | (id,_,committed) :: prev_commits ->
+    | (id,msg,committed) :: prev_commits ->
       let config = {config with current_branch=branch_name} in
       let source_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
       let target_dir = repo_dir in
       let () = copy_over_files repo_dir committed source_dir target_dir in
       let tree = {
-        head= (id,committed);
+        head= (id,msg,committed);
         index= tree.index;
         work_dir= work_dir;
         commit_tree= commit_tree
@@ -319,7 +319,7 @@ let reset_branch_soft tree config repo_dir current_branch hash =
     (tree,config,Failure ("No such commit with hash " ^ hash) )
   | Some ((id,msg,committed),_) ->
     let tree = {
-      head= (id,committed);
+      head= (id,msg,committed);
       index= tree.index;
       work_dir= work_dir;
       commit_tree= commit_tree
@@ -339,7 +339,7 @@ let reset_branch_mixed tree config repo_dir current_branch hash =
     let added = added |-| committed in
     let removed = removed |-| committed in
     let tree = {
-      head= (id,committed);
+      head= (id,msg,committed);
       index= (added,removed);
       work_dir= work_dir;
       commit_tree= commit_tree
@@ -362,7 +362,7 @@ let reset_branch_hard tree config repo_dir current_branch hash =
     let target_dir = repo_dir in
     let () = copy_over_files repo_dir committed source_dir target_dir in
     let tree = {
-      head= (id,committed);
+      head= (id,msg,committed);
       index= (added,removed);
       work_dir= work_dir;
       commit_tree= commit_tree
@@ -371,37 +371,34 @@ let reset_branch_hard tree config repo_dir current_branch hash =
 
 let status tree config repo_dir current_branch =
   let work_dir = get_work_dir repo_dir in
-  let branch = CommitTree.find current_branch tree.commit_tree in
-  match branch with
-  | (_,msg,committed) :: prev_commits ->
-    let (added,removed) = tree.index in
-    let feedback = "On branch " ^ current_branch ^ "\n\n" ^ msg ^ "\n\n" ^
+  let (id,msg,committed) = tree.head in
+  let (added,removed) = tree.index in
+  let feedback = "On branch " ^ current_branch ^ "\n\n" ^ msg ^ "\n\n" ^
+  (
+    if ( max (List.length added) (List.length removed) > 0 ) then
     (
-      if ( max (List.length added) (List.length removed) > 0 ) then
-      (
-        "Changes to be committed:\n" ^
-        (Listops.to_string (abbrev_files repo_dir (added |-| (added |-| committed) ) ) "\t" "\nadded:\t" "\n" ) ^
-        (Listops.to_string (abbrev_files repo_dir (added |-| committed) ) "\t" "\nnew file:\t" "\n" ) ^
-        (Listops.to_string (abbrev_files repo_dir removed) "\t" "\ndeleted:\t" "\n\n")
-      )
-      else
-      ("Nothing to commit\n" )
+      "Changes to be committed:\n" ^
+      (Listops.to_string (abbrev_files repo_dir (added |-| (added |-| committed) ) ) "\t" "\nadded:\t" "\n" ) ^
+      (Listops.to_string (abbrev_files repo_dir (added |-| committed) ) "\t" "\nnew file:\t" "\n" ) ^
+      (Listops.to_string (abbrev_files repo_dir removed) "\t" "\ndeleted:\t" "\n\n")
     )
-    ^
+    else
+    ("Nothing to commit\n" )
+  )
+  ^
+  (
+    let untracked_files = ((work_dir |-| committed) |-| added) |-| removed in
+    if (List.length (untracked_files) > 0) then
     (
-      let untracked_files = ((work_dir |-| committed) |-| added) |-| removed in
-      if (List.length (untracked_files) > 0) then
-      (
-        let untracked_files = abbrev_files repo_dir untracked_files in
-        "Untracked files:\n" ^ (Listops.to_string (untracked_files) "\t" "\n\t" "\n")
-      )
-      else
-      ("Working directory clean" )
+      let untracked_files = abbrev_files repo_dir untracked_files in
+      "Untracked files:\n" ^ (Listops.to_string (untracked_files) "\t" "\n\t" "\n")
     )
-    in
-    let tree = {tree with work_dir = work_dir} in
-    (tree,config,Success feedback)
-  | _ -> (tree,config,Failure "fatal: Not an oasys repository: .oasys")
+    else
+    ("Working directory clean" )
+  )
+  in
+  let tree = {tree with work_dir = work_dir} in
+  (tree,config,Success feedback)
 
 
 let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * config * feedback =

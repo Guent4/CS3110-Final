@@ -26,7 +26,7 @@ let initialize_context repo_path repo_state_path =
   let repo_dir = repo_path in
   let current_branch = "master" in
   let config = {repo_dir=repo_dir; current_branch=current_branch} in
-  let head = ("",[]) in
+  let head = ("","",[]) in
   let index = ([],[]) in
   let work_dir = [] in
   let commit_tree = CommitTree.empty in
