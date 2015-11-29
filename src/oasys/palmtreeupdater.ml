@@ -13,21 +13,19 @@ let gen_hash state =
   let gen _ = String.make 1 (char_of_int(gen())) in
   String.concat "" (Array.to_list (Array.init 40 gen))
 
-
 let (|+|) l1 l2 = Listops.union l1 l2
 
 let (|-|) l1 l2 = Listops.subtract l1 l2
 
 let to_string_commit commit =
-  match commit with
-  | Changes(_,_) -> Feedback.empty
-  | Commit(id,msg,_) -> Feedback.to_string_commit id msg
+  let (id,msg,_) = commit in
+  Feedback.to_string_commit id msg
 
 let to_string_branch branch =
   List.fold_left (fun a x -> a ^ (to_string_commit x ^ "\n")) "" branch
 
 let to_string_branches tree current_branch =
-  PalmTree.fold
+  CommitTree.fold
   (fun k _ a -> a ^ "\n" ^ if (k = current_branch) then "*"^k else k)
   tree ""
 
@@ -36,197 +34,246 @@ let get_config config =
   let current_branch = config.current_branch in
   (repo_dir,current_branch)
 
-let init tree config repo_dir current_branch =
-  let exists = Fileio.file_exists (repo_dir ^ oasys_dir) in
+let ignore_file repo_dir file_name =
   (
-  match exists with
+    let regexp = Str.regexp (repo_dir ^ oasys_dir) in
+    (Str.string_match regexp file_name 0) || (Str.string_match regexp (file_name^"/") 0)
+  )
+  ||
+  (
+    repo_dir = (file_name ^ "/")
+  )
+
+let get_work_dir repo_dir =
+  let files = FileUtil.find FileUtil.True repo_dir (fun x y -> y :: x) [] in
+  let files = List.filter (fun x -> not (ignore_file repo_dir x)) files in
+  files
+
+let get_files file_pattern files =
+  let regexp = Str.regexp file_pattern in
+  List.filter (fun x -> Str.string_match regexp x 0) files
+
+let abbrev_files repo_dir files =
+  List.fold_left
+  (fun a x ->
+    (String.sub x
+      (String.length repo_dir) (String.length x - String.length repo_dir)) :: a)
+  []
+  files
+
+let init tree config repo_dir current_branch =
+  let work_dir = get_work_dir repo_dir in
+  match Fileio.file_exists (repo_dir ^ oasys_dir) with
   | true ->
+    let tree = {tree with work_dir=work_dir} in
     (tree, config, Failure Feedback.repo_exists)
   | false ->
-    let branch = PalmTree.find current_branch tree in
+    let commit_tree = tree.commit_tree in
+    let branch = CommitTree.find current_branch commit_tree in
     (
     match branch with
     | [] ->
       let () = Fileio.create_dir (repo_dir ^ oasys_dir) in
       let id = gen_hash (tree,config) in
       let () = Fileio.create_dir (repo_dir ^ oasys_dir ^ id ^ "/") in
-      let added = [] in
-      let removed = [] in
-      let committed = [] in
-      let branch' =
-        Changes(added,removed) ::
-        Commit (id,Feedback.init_commit,committed) ::
-        []
-      in
-      let tree' = PalmTree.add current_branch branch' tree in
-      (tree', config, Success Feedback.repo_initialized)
-    | _ -> assert false
+      let head = (id,[]) in
+      let index = ([],[]) in
+      let branch = [(id, Feedback.init_commit, [])] in
+      let commit_tree = CommitTree.add current_branch branch commit_tree in
+      let tree = {
+        head=head;
+        index=index;
+        work_dir=work_dir;
+        commit_tree=commit_tree
+      } in
+      (tree,config,Success (Feedback.repo_initialized (repo_dir ^ oasys_dir)))
+    | _ -> (tree,config,Failure Feedback.no_repo)
     )
-  )
 
 let add tree config repo_dir current_branch file_name =
-  let exists = Fileio.file_exists (repo_dir ^ file_name) in
-  (
-  match exists with
-  | false -> (tree, config, Failure (Feedback.cannot_find file_name))
-  | true ->
-    let branch = PalmTree.find current_branch tree in
-    (
-    match branch with
-    | Changes(added,removed) :: Commit(id,msg,committed) :: prev_commits ->
-      let added' = added |+| [file_name] in
-      let removed' = removed |-| [file_name] in
-      let branch' =
-        Changes(added',removed') ::
-        Commit(id,msg,committed) ::
-        prev_commits
-      in
-      let tree' = PalmTree.add current_branch branch' tree in
-      (tree', config, Success (Feedback.file_added file_name) )
-    | _ -> assert false
-    )
-  )
-
-let rm_file tree config repo_dir current_branch file_name =
-  let exists = Fileio.file_exists (repo_dir ^ file_name) in
-  (
-  match exists with
-  | false -> (tree, config, Failure (Feedback.cannot_find file_name))
-  | true ->
-    let branch = PalmTree.find current_branch tree in
-    (
-    match branch with
-    | Changes(added,removed) :: Commit(id,msg,committed) :: prev_commits ->
-      (
-      match List.mem file_name committed with
-      | false -> (tree, config, Failure (Feedback.file_never_committed file_name))
-      | true ->
-        let added' = added |-| [file_name] in
-        let removed' = removed |+| [file_name] in
-        let branch' =
-          Changes(added',removed') ::
-          Commit(id,msg,committed) ::
-          prev_commits
-        in
-        let tree' = PalmTree.add current_branch branch' tree in
-        (tree', config, Success (Feedback.file_marked_for_removal file_name))
-      )
-    | _ -> assert false
-    )
-  )
-
-let rm_branch tree config repo_dir current_branch branch_name =
-  match current_branch = branch_name with
-  | true -> (tree, config, Failure "Cannot remove the branch you are on.")
+  let work_dir = get_work_dir repo_dir in
+  match List.mem file_name work_dir with
   | false ->
-    let tree' = PalmTree.remove branch_name tree in
-    (tree', config, Success (branch_name ^ " has been removed"))
-
-let reset_file tree config repo_dir current_branch file_name =
-  let exists = Fileio.file_exists (repo_dir ^ file_name) in
-  (
-  match exists with
-  | false ->
+    let tree = {tree with work_dir=work_dir} in
     (tree, config, Failure (Feedback.cannot_find file_name))
   | true ->
-    let branch = PalmTree.find current_branch tree in
-    (
-    match branch with
-    | Changes(added,removed) :: Commit(id,msg,committed) :: prev_commits ->
-      (
-      match (List.mem file_name added) || (List.mem file_name removed) with
-      | false -> (tree, config, Failure (Feedback.file_unchanged file_name))
-      | true ->
-        let added' = added |-| [file_name] in
-        let removed' = removed |-| [file_name] in
-        let branch' =
-          Changes(added', removed') ::
-          Commit(id,msg,committed) ::
-          prev_commits
-        in
-        let tree' = PalmTree.add current_branch branch' tree in
-        (tree', config, Success (Feedback.file_reset file_name))
-      )
-    | _ -> assert false
-    )
-  )
+    let (added,removed) = tree.index in
+    let added = added |+| [file_name] in
+    let removed = removed |-| [file_name] in
+    let tree = {
+      head=tree.head;
+      index=(added,removed);
+      work_dir=work_dir;
+      commit_tree=tree.commit_tree
+    } in
+    (tree, config, Success (Feedback.file_added file_name) )
 
-let commit tree config repo_dir current_branch msg' =
-  let branch = PalmTree.find current_branch tree in
-  (
-  match branch with
-  | Changes(added,removed) :: Commit(id,msg,committed) :: prev_commits ->
-    let can_commit = max (List.length added) (List.length removed) > 0 in
+let rm_file tree config repo_dir current_branch file_name =
+  let work_dir = get_work_dir repo_dir in
+  match List.mem file_name work_dir with
+  | false ->
+    let tree = {tree with work_dir=work_dir} in
+    (tree, config, Failure (Feedback.cannot_find file_name))
+  | true ->
+    let (added,removed) = tree.index in
+    let added = added |-| [file_name] in
+    let removed = removed |+| [file_name] in
+    let tree = {
+      head=tree.head;
+      index=(added,removed);
+      work_dir=work_dir;
+      commit_tree=tree.commit_tree
+    } in
+    (tree, config, Success (Feedback.file_added file_name) )
+
+let rm_branch tree config repo_dir current_branch branch_name =
+  let work_dir = get_work_dir repo_dir in
+  match current_branch = branch_name with
+  | true ->
+    let tree = {tree with work_dir = work_dir} in
+    (tree, config, Failure "Cannot remove the branch you are on.")
+  | false ->
+    let commit_tree = tree.commit_tree in
     (
-    match can_commit with
-    | false -> (tree, config, Failure Feedback.no_changes)
+    match CommitTree.mem branch_name commit_tree with
+    | false ->
+      let tree = {tree with work_dir=work_dir} in
+      (tree, config, Failure (Feedback.branch_does_not_exist branch_name))
     | true ->
-      let id' = gen_hash (tree,config) in
-      let () = assert (id' <> id) in
-      let committed' = (committed |-| removed) |+| added in
-      let commit_dir = repo_dir ^ oasys_dir ^ id' ^ "/" in
-      let () = Fileio.create_dir (repo_dir ^ oasys_dir ^ id' ^ "/") in
+      let commit_tree = tree.commit_tree in
+      let commit_tree = CommitTree.remove branch_name commit_tree in
+      let tree = {
+        head=tree.head;
+        index=tree.index;
+        work_dir=work_dir;
+        commit_tree=commit_tree
+      } in
+      (tree, config, Success (Feedback.branch_removed branch_name))
+    )
+
+let reset_file tree config repo_dir current_branch file_name =
+  let work_dir = get_work_dir repo_dir in
+  match List.mem file_name work_dir with
+  | false ->
+    let tree = {tree with work_dir=work_dir} in
+    (tree, config, Failure (Feedback.cannot_find file_name))
+  | true ->
+    let (added,removed) = tree.index in
+    let added = added |-| [file_name] in
+    let removed = removed |-| [file_name] in
+    let tree = {
+      head=tree.head;
+      index=(added,removed);
+      work_dir=work_dir;
+      commit_tree=tree.commit_tree
+    } in
+    (tree, config, Success (Feedback.file_reset file_name) )
+
+let commit tree config repo_dir current_branch msg =
+  let work_dir = get_work_dir repo_dir in
+  let commit_tree = tree.commit_tree in
+  let branch = CommitTree.find current_branch commit_tree in
+  match branch with
+  | (_,_,committed) :: prev_commits ->
+    (
+    let (added, removed) = tree.index in
+    match max (List.length added) (List.length removed) > 0 with
+    | false ->
+      let tree = {tree with work_dir=work_dir} in
+      (tree, config, Failure Feedback.no_changes)
+    | true ->
+      let id = gen_hash (tree,config) in
+      let committed = (committed |-| removed) |+| added in
+      let commit_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
+      let () = Fileio.create_dir (repo_dir ^ oasys_dir ^ id ^ "/") in
       let () =
         List.iter
-        (fun x -> Fileio.copy_file (repo_dir ^ x) commit_dir)
-        committed'
+        (fun x -> let () = Printf.printf "\n%s\n" x in let () = Printf.printf "\n%s\n" commit_dir in Fileio.copy_file x commit_dir)
+        committed
       in
-      let added' = [] in
-      let removed' = [] in
-      let branch' =
-        Changes(added',removed') ::
-        Commit(id',msg',committed') ::
-        Commit(id,msg,committed) ::
-        prev_commits
-      in
-      let tree' = PalmTree.add current_branch branch' tree in
-      (tree', config, Success (Feedback.changes_committed current_branch id' msg'))
+      let head = (id,committed) in
+      let index = (added,removed) in
+      let branch = (id,msg,committed) :: branch in
+      let commit_tree = CommitTree.add current_branch branch commit_tree in
+      let tree = {
+        head=head;
+        index=index;
+        work_dir=work_dir;
+        commit_tree=commit_tree
+      } in
+      (tree, config, Success (Feedback.changes_committed current_branch id msg))
     )
-  | _ -> assert false
-  )
+  | _ -> (tree,config,Failure Feedback.no_repo)
 
 let log tree config repo_dir current_branch =
-  let branch = PalmTree.find current_branch tree in
+  let work_dir = get_work_dir repo_dir in
+  let commit_tree = tree.commit_tree in
+  let branch = CommitTree.find current_branch commit_tree in
   let log_result = to_string_branch branch in
+  let tree = {tree with work_dir=work_dir} in
   (tree, config, Success log_result)
 
 let get_branches tree config repo_dir current_branch =
-  let result = to_string_branches tree current_branch in
+  let work_dir = get_work_dir repo_dir in
+  let commit_tree = tree.commit_tree in
+  let result = to_string_branches commit_tree current_branch in
+  let tree = {tree with work_dir=work_dir} in
   (tree, config, Success result)
 
 let branch tree config repo_dir current_branch branch_name =
-  match PalmTree.mem branch_name tree with
-  | true -> (tree,config, Failure (Feedback.branch_exists branch_name))
+  let work_dir = get_work_dir repo_dir in
+  let commit_tree = tree.commit_tree in
+  match CommitTree.mem branch_name commit_tree with
+  | true ->
+    let tree = {tree with work_dir=work_dir} in
+    (tree,config, Failure (Feedback.branch_exists branch_name))
   | false ->
-    let branch = PalmTree.find current_branch tree in
-    (
-    match branch with
-    | Changes(added, removed) :: commits ->
-      let branch' = Changes([], []) :: commits in
-      let tree' = PalmTree.add branch_name branch' tree in
-      (tree', config, Success (Feedback.branch_created branch_name))
-    | _ -> assert false
-    )
+    let branch = CommitTree.find current_branch commit_tree in
+    let commit_tree = CommitTree.add branch_name branch commit_tree in
+    let tree = {
+      head= tree.head;
+      index= tree.index;
+      work_dir= work_dir;
+      commit_tree= commit_tree
+    } in
+    (tree,config, Success (Feedback.branch_created branch_name))
 
 let checkout tree config repo_dir current_branch branch_name =
-  match not (PalmTree.mem branch_name tree) with
-  | true -> (tree,config, Failure (Feedback.branch_does_not_exist branch_name))
+  let work_dir = get_work_dir repo_dir in
+  let commit_tree = tree.commit_tree in
+  match (CommitTree.mem branch_name commit_tree) with
   | false ->
-    let branch = PalmTree.find current_branch tree in
+    let tree = {tree with work_dir=work_dir} in
+    (tree,config, Failure (Feedback.branch_does_not_exist branch_name))
+  | true ->
+    let branch = CommitTree.find current_branch commit_tree in
     (
     match branch with
-    | Changes(added, removed) :: prev_commits ->
-      (
-      match added, removed with
-      | [],[] ->
-        let config' = {config with current_branch = branch_name} in
-        (tree, config', Success (Feedback.branch_checkedout branch_name))
-      | _ -> (tree, config, Failure Feedback.branch_checkout_uncommitted_changes)
-      )
-    | _ -> assert false
+    | (id,_,commits) :: prev_commits ->
+      let config = {config with current_branch=branch_name} in
+      let tree = {
+        head= (id,commits);
+        index= tree.index;
+        work_dir= work_dir;
+        commit_tree= commit_tree
+      } in
+      (tree,config, Success ("Switched to branch \'" ^ branch_name ^ "\'"))
+    | _ -> (tree,config,Failure (Feedback.no_repo))
     )
 
+
 let file_batch_op op tree config repo_dir current_branch files =
+  let files' =
+    List.fold_left
+    (fun a x -> a |+| (get_files (repo_dir ^ "\\(" ^ x ^ "\\)") tree.work_dir) )
+    []
+    files
+  in
+  match files' with
+  | [] ->
+  let path_spec = Listops.to_string files "" " " "" in
+  (tree,config,Failure (Feedback.cannot_find path_spec))
+  | files ->
   let f t c = op t c repo_dir current_branch in
   let result =
     List.fold_left
@@ -247,7 +294,7 @@ let file_batch_op op tree config repo_dir current_branch files =
   in
   (tree',config',Success feedback)
 
-let rec find_branch branch hash =
+(* let rec find_branch branch hash =
   match branch with
   | Changes(_,_) :: commits -> find_branch commits hash
   | Commit(id,msg,_) :: prev_commits ->
@@ -256,36 +303,96 @@ let rec find_branch branch hash =
       | true -> Some branch
       | false -> find_branch prev_commits hash
     )
-  | _ -> None
+  | _ -> None *)
 
 
-let reset_branch tree config repo_dir current_branch hash =
-  let branch = PalmTree.find current_branch tree in
-  match find_branch branch hash with
-  | None -> (tree,config,Failure "No such commit exists in branch")
-  | Some (Commit(id,msg,committed) :: prev_commits) ->
-    let commit_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
-    let () =
-      List.iter
-      (fun x -> Fileio.copy_file (commit_dir ^ x) repo_dir)
-      committed
+let reset_branch tree config repo_dir current_branch hash = failwith "not implemented"
+  (* let branch = PalmTree.find current_branch tree in
+  match hash with
+  | "HEAD" ->
+    (
+    match branch with
+    | Changes(_,_) :: Commit (id,msg,committed) :: prev_commits ->
+      let commit_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
+      let () =
+        List.iter
+        (fun x -> Fileio.copy_file (commit_dir ^ x) repo_dir)
+        committed
+      in
+      let added = [] in
+      let removed = [] in
+      let branch' =
+        Changes(added,removed) ::
+        Commit(id,msg,committed) ::
+        prev_commits
+      in
+      let tree' = PalmTree.add current_branch branch' tree in
+      (tree', config, Success ("Branch has been successfully reset to " ^ hash))
+    | _ -> assert false
+    )
+  | _ ->
+    (
+    match find_branch branch hash with
+    | None -> (tree,config,Failure "No such commit exists in branch")
+    | Some (Commit(id,msg,committed) :: prev_commits) ->
+      let commit_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
+      let () =
+        List.iter
+        (fun x -> Fileio.copy_file (commit_dir ^ x) repo_dir)
+        committed
+      in
+      let added = [] in
+      let removed = [] in
+      let branch' =
+        Changes(added,removed) ::
+        Commit(id,msg,committed) ::
+        prev_commits
+      in
+      let tree' = PalmTree.add current_branch branch' tree in
+      (tree', config, Success ("Branch has been successfully reset to " ^ hash))
+    | _ -> assert false
+    ) *)
+
+let status tree config repo_dir current_branch =
+  let work_dir = get_work_dir repo_dir in
+  let branch = CommitTree.find current_branch tree.commit_tree in
+  match branch with
+  | (_,msg,_) :: prev_commits ->
+    let (added,removed) = tree.index in
+    let feedback = "On branch " ^ current_branch ^ "\n\n" ^ msg ^ "\n\n" ^
+    (
+      if (List.length added > 0) then
+      (
+        "Changes to be committed:\n" ^
+        (Listops.to_string (abbrev_files repo_dir added) "\t" "\nadded:\t" "\n\n" ) ^
+        (Listops.to_string (abbrev_files repo_dir removed) "\t" "\ndeleted:\t" "\n\n")
+      )
+      else
+      ("Nothing to commit\n" )
+    )
+    ^
+    (
+      if (List.length (work_dir |-| added) > 0) then
+      (
+        let untracked_files = (work_dir |-| added) |-| removed in
+        let untracked_files = abbrev_files repo_dir untracked_files in
+        "Untracked files:\n" ^ (Listops.to_string (untracked_files) "\t" "\n\t" "\n")
+      )
+      else
+      ("Working directory clean" )
+    )
     in
-    let added = [] in
-    let removed = [] in
-    let branch' =
-      Changes(added,removed) ::
-      Commit(id,msg,committed) ::
-      prev_commits
-    in
-    let tree' = PalmTree.add current_branch branch' tree in
-    (tree', config, Success "Branch has been successful reset to a previous commit")
-  | _ -> assert false
+    let tree = {tree with work_dir = work_dir} in
+    (tree,config,Success feedback)
+  | _ -> (tree,config,Failure "fatal: Not an oasys repository: .oasys")
+
 
 let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * config * feedback =
   let (repo_dir, current_branch) = get_config config in
   match cmd with
   | (INIT,[EMPTY],[]) -> init tree config repo_dir current_branch
   | (ADD,[EMPTY],files) -> file_batch_op add tree config repo_dir current_branch files
+  | (ADD,[ALL],[]) -> file_batch_op add tree config repo_dir current_branch tree.work_dir
   | (RM,[FILE],files) -> file_batch_op rm_file tree config repo_dir current_branch files
   | (RM,[BNCH],[branch_name]) -> rm_branch tree config repo_dir current_branch branch_name
   | (RESET,[FILE],files) -> file_batch_op reset_file tree config repo_dir current_branch files
@@ -295,6 +402,8 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
   | (BRANCH,[EMPTY],[]) -> get_branches tree config repo_dir current_branch
   | (BRANCH,[EMPTY],[branch_name]) -> branch tree config repo_dir current_branch branch_name
   | (CHECKOUT,[EMPTY],[branch_name]) -> checkout tree config repo_dir current_branch branch_name
+  | (STATUS,[EMPTY],[]) -> status tree config repo_dir current_branch
+  | (HELP,_,_) -> (tree, config, Success Feedback.empty)
   | _ -> (tree,config,Failure Feedback.no_support)
 
 let handle_request (cmd,data) = failwith "unimplemented"

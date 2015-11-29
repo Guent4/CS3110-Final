@@ -7,25 +7,45 @@ let serialize_string s =
 let serialize_string_list l =
   `List (List.rev (List.fold_left (fun a x -> serialize_string x :: a) [] l))
 
-let serialize_node node =
-  match node with
-  | Commit (id, msg,committed) ->
-    `Assoc
-    [("type", `String "Commit");
-    ("id", `String id);
-    ("msg", `String msg);
-    ("committed", serialize_string_list committed)]
-  | Changes (added, removed) ->
-    `Assoc
-    [("type", `String "Changes");
-    ("added", serialize_string_list added);
-    ("removed", serialize_string_list removed)]
+let serialize_commit commit =
+  let (id,msg,committed) = commit in
+  `Assoc
+  [
+  ("id", `String id);
+  ("msg", `String msg);
+  ("committed", serialize_string_list committed)
+  ]
 
 let serialize_branch branch =
-  `List (List.rev (List.fold_left (fun a x -> serialize_node x :: a) [] branch))
+  `List (List.rev (List.fold_left (fun a x -> serialize_commit x :: a) [] branch))
 
-let serialize_tree tree =
-  `Assoc (PalmTree.fold (fun k v a -> (k, serialize_branch v) :: a) tree [])
+let serialize_head head =
+  let (id,committed) = head in
+  `Assoc
+  [
+  ("id", serialize_string id);
+  ("committed", serialize_string_list committed)
+  ]
+
+let serialize_index index =
+  let (added,removed) = index in
+  `Assoc
+  [
+  ("added", serialize_string_list added);
+  ("removed", serialize_string_list removed)
+  ]
+
+let serialize_commit_tree commit_tree =
+  `Assoc (CommitTree.fold (fun k v a -> (k, serialize_branch v) :: a) commit_tree [])
+
+let serialize_palm_tree palm_tree =
+  `Assoc
+  [
+  ("head", serialize_head palm_tree.head);
+  ("index", serialize_index palm_tree.index);
+  ("work_dir", serialize_string_list palm_tree.work_dir);
+  ("commit_tree", serialize_commit_tree palm_tree.commit_tree)
+  ]
 
 let serialize_config config =
   `Assoc
@@ -35,7 +55,7 @@ let serialize_config config =
 let serialize_state state =
   `Assoc
   [("config", serialize_config state.config);
-  ("tree", serialize_tree state.tree)]
+  ("tree", serialize_palm_tree state.tree)]
 
 let deserialize_string s =
   (s |> to_string)
@@ -44,36 +64,53 @@ let deserialize_string_list (l:Yojson.Basic.json) =
   let l = (l |> to_list) in
   List.rev (List.fold_left (fun a x -> deserialize_string x :: a) [] l)
 
-let deserialize_node (node:Yojson.Basic.json) =
-  match (node |> member "type" |> to_string) with
-  | "Commit" ->
-    let id = (node |> member "id") in
-    let msg = (node |> member "msg") in
-    let committed = (node |> member "committed") in
-    Commit
-    (
-      deserialize_string id,
-      deserialize_string msg,
-      deserialize_string_list committed
-    )
-  | "Changes" ->
-    let added = (node |> member "added") in
-    let removed = (node |> member "removed") in
-    Changes
-    (
-      deserialize_string_list added,
-      deserialize_string_list removed
-    )
-  | _ -> assert false
+let deserialize_commit (node:Yojson.Basic.json) =
+  let id = (node |> member "id") in
+  let msg = (node |> member "msg") in
+  let committed = (node |> member "committed") in
+  (
+    deserialize_string id,
+    deserialize_string msg,
+    deserialize_string_list committed
+  )
 
 let deserialize_branch branch =
   let branch = (branch |> to_list) in
-  List.rev (List.fold_left (fun a x -> deserialize_node x :: a) [] branch)
+  List.rev (List.fold_left (fun a x -> deserialize_commit x :: a) [] branch)
 
-let deserialize_tree tree =
-  match tree with
+let deserialize_head head =
+  match head with
   | `Assoc x ->
-    List.fold_left (fun a (k,v) -> PalmTree.add k (deserialize_branch v) a) PalmTree.empty x
+    (
+      deserialize_string (List.assoc "id" x),
+      deserialize_string_list (List.assoc "committed" x)
+    )
+  | _ -> assert false
+
+let deserialize_index index =
+  match index with
+  | `Assoc x ->
+    (
+      deserialize_string_list (List.assoc "added" x),
+      deserialize_string_list (List.assoc "removed" x)
+    )
+  | _ -> assert false
+
+let deserialize_commit_tree commit_tree =
+  match commit_tree with
+  | `Assoc x ->
+    List.fold_left (fun a (k,v) -> CommitTree.add k (deserialize_branch v) a) CommitTree.empty x
+  | _ -> assert false
+
+let deserialize_palm_tree palm_tree =
+  match palm_tree with
+  | `Assoc x ->
+    {
+      head= deserialize_head (List.assoc "head" x);
+      index= deserialize_index (List.assoc "index" x);
+      work_dir= deserialize_string_list (List.assoc "work_dir" x);
+      commit_tree= deserialize_commit_tree (List.assoc "commit_tree" x)
+    }
   | _ -> assert false
 
 let deserialize_config config =
@@ -82,7 +119,7 @@ let deserialize_config config =
 
 let deserialize_state state =
   {config= deserialize_config (state |> member "config");
-  tree= deserialize_tree (state |> member "tree")}
+  tree= deserialize_palm_tree (state |> member "tree")}
 
 let serialize state filename =
   let state_json = serialize_state state in

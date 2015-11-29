@@ -61,7 +61,7 @@ let translate_opt (opt_string:string) : opt =
   | "-rm" | "--remove"          -> REMOVE
   | "-rn" | "--rename"          -> RENAME
   | "-b" | "--branch"           -> BNCH
-  | "--file"                    -> FILE
+  | "-f" | "--file"             -> FILE
   | "--cmd"                     -> CMD
   | ""                          -> EMPTY
   | s                           -> INVALID_OPT s
@@ -75,7 +75,7 @@ let detranslate_opt (opt:opt) : string =
   | REMOVE          -> "-rm or --remove"
   | RENAME          -> "-rn or --rename"
   | BNCH            -> "-b or --branch"
-  | FILE            -> "--file"
+  | FILE            -> "-f or --file"
   | CMD             -> "--cmd"
   | EMPTY           -> "<no options given>"
   | INVALID_OPT s   -> "s"
@@ -88,9 +88,10 @@ let arg_num_expected =
       ((STATUS,EMPTY),[0]);
       ((ADD,EMPTY),[-1]);     ((ADD,ALL),[0]);
       ((COMMIT,MSG),[1]);
-      ((BRANCH,EMPTY),[0]);   ((BRANCH,EMPTY),[1]);
+      ((BRANCH,EMPTY),[-2]);
       ((RESET,FILE),[-1]);    ((RESET,BNCH),[1]);
       ((RM,BNCH),[-1]);       ((RM,FILE),[-1]);
+      ((CHECKOUT,EMPTY),[1]);
       ((DIFF,EMPTY),[0]);     ((DIFF,FILE),[2]);  ((DIFF,BNCH),[0;2]);
       ((PUSH,EMPTY),[0]);
       ((HELP,EMPTY),[-2]);    ((HELP,CMD),[1])
@@ -131,6 +132,6 @@ let arg_num_default =
   | 10 -> Printf.printf "FAILURE: \"%s\" is not a command; command-search cannot be completed.\nTry general-search without \"--cmd\" option.\n" s1
   | 11 -> Printf.printf "UNSUCCESSFUL: Cannot find the command \"%s\" in the documentation.\n" s1
   | 12 -> Printf.printf "UNSUCCESSFUL: Cannot find search in the documentation\n"
-  | 13 -> Printf.printf "FAILURE: Input was not a number.\n"
+  | 13 -> Printf.printf "FAILURE: Not a valid option.\n"
   | 14 -> Printf.printf "UNSUCCESSFUL: Apologies. Unable to find topic in documentation.\n"
   | _ -> Printf.printf "\n"

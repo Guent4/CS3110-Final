@@ -60,10 +60,11 @@ let help_empty (a_s:arg list) : unit =
   else (
     print_endline "These are the search result. Please enter the number corresponding to interest:\n\t0: Quit";
     ignore (List.fold_left (fun a x -> print_endline ("\t"^(string_of_int a)^": "^x); a+1) 1 topics);
-    let sel = read_line() in
+    let sel = String.trim (read_line()) in
     if (is_int sel) then
       let sel_num = int_of_string sel in
       if (sel_num = 0) then ()
+      else if (sel_num > List.length topics) then print_error 13
       else (
         let sel_name = List.nth topics (sel_num - 1) in
         let regex = sel_name^"\\(.*\\(\n\t\\)*\\)*" in
