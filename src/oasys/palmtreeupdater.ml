@@ -130,7 +130,7 @@ let rm_branch tree config repo_dir current_branch branch_name =
     match CommitTree.mem branch_name commit_tree with
     | false ->
       let tree = {tree with work_dir=work_dir} in
-      (tree, config, Failure "Branch does not exist")
+      (tree, config, Failure (Feedback.branch_does_not_exist branch_name))
     | true ->
       let commit_tree = tree.commit_tree in
       let commit_tree = CommitTree.remove branch_name commit_tree in
@@ -195,7 +195,7 @@ let commit tree config repo_dir current_branch msg =
       } in
       (tree, config, Success (Feedback.changes_committed current_branch id msg))
     )
-  | _ -> (tree,config,Failure "fatal: Not an oasys repository: .oasys")
+  | _ -> (tree,config,Failure Feedback.no_repo)
 
 let log tree config repo_dir current_branch =
   let work_dir = get_work_dir repo_dir in
@@ -228,7 +228,7 @@ let branch tree config repo_dir current_branch branch_name =
       work_dir= work_dir;
       commit_tree= commit_tree
     } in
-    (tree,config, Success (branch_name ^ " was created"))
+    (tree,config, Success (Feedback.branch_created branch_name))
 
 let checkout tree config repo_dir current_branch branch_name =
   let work_dir = get_work_dir repo_dir in
@@ -249,18 +249,23 @@ let checkout tree config repo_dir current_branch branch_name =
         work_dir= work_dir;
         commit_tree= commit_tree
       } in
-      (tree,config, Success (branch_name ^ " was created"))
+      (tree,config, Success ("Switched to branch \'" ^ branch_name ^ "\'"))
     | _ -> (tree,config,Failure "fatal: Not an oasys repository: .oasys")
     )
 
 
 let file_batch_op op tree config repo_dir current_branch files =
-  let files =
+  let files' =
     List.fold_left
     (fun a x -> a |+| (get_files x tree.work_dir))
     []
     files
   in
+  match files' with
+  | [] ->
+  let path_spec = Listops.to_string files "" " " "" in
+  (tree,config,Failure (Feedback.cannot_find path_spec))
+  | files ->
   let f t c = op t c repo_dir current_branch in
   let result =
     List.fold_left
