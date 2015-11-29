@@ -53,6 +53,14 @@ let get_files file_pattern files =
   let regexp = Str.regexp file_pattern in
   List.filter (fun x -> Str.string_match regexp x 0) files
 
+let abbrev_files repo_dir files =
+  List.fold_left
+  (fun a x ->
+    (String.sub x
+      (String.length repo_dir) (String.length x - String.length repo_dir)) :: a)
+  []
+  files
+
 let init tree config repo_dir current_branch =
   let work_dir = get_work_dir repo_dir in
   match Fileio.file_exists (repo_dir ^ oasys_dir) with
@@ -356,8 +364,8 @@ let status tree config repo_dir current_branch =
       if (List.length added > 0) then
       (
         "Changes to be committed:\n" ^
-        (Listops.to_string (added) "\t" "\nadded:\t" "\n\n" ) ^
-        (Listops.to_string (removed) "\t" "\ndeleted:\t" "\n\n")
+        (Listops.to_string (abbrev_files repo_dir added) "\t" "\nadded:\t" "\n\n" ) ^
+        (Listops.to_string (abbrev_files repo_dir removed) "\t" "\ndeleted:\t" "\n\n")
       )
       else
       ("Nothing to commit\n" )
@@ -366,7 +374,9 @@ let status tree config repo_dir current_branch =
     (
       if (List.length (work_dir |-| added) > 0) then
       (
-        "Untracked files:\n" ^ (Listops.to_string ((work_dir |-| added) |-| removed) "\t" "\n\t" "\n")
+        let untracked_files = (work_dir |-| added) |-| removed in
+        let untracked_files = abbrev_files repo_dir untracked_files in
+        "Untracked files:\n" ^ (Listops.to_string (untracked_files) "\t" "\n\t" "\n")
       )
       else
       ("Working directory clean" )
