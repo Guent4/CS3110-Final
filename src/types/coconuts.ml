@@ -36,7 +36,7 @@ type removed = string list
 
 type committed = string list
 
-type node = Commit of id * msg | Changes of added * removed * committed
+type node = Commit of id * msg * committed | Changes of added * removed
 
 type branch = node list
 

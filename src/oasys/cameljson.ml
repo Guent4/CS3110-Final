@@ -9,17 +9,17 @@ let serialize_string_list l =
 
 let serialize_node node =
   match node with
-  | Commit (id, msg) ->
+  | Commit (id, msg,committed) ->
     `Assoc
     [("type", `String "Commit");
     ("id", `String id);
-    ("msg", `String msg)]
-  | Changes (added, removed, committed) ->
+    ("msg", `String msg);
+    ("committed", serialize_string_list committed)]
+  | Changes (added, removed) ->
     `Assoc
     [("type", `String "Changes");
     ("added", serialize_string_list added);
-    ("removed", serialize_string_list removed);
-    ("committed", serialize_string_list committed)]
+    ("removed", serialize_string_list removed)]
 
 let serialize_branch branch =
   `List (List.rev (List.fold_left (fun a x -> serialize_node x :: a) [] branch))
@@ -49,20 +49,20 @@ let deserialize_node (node:Yojson.Basic.json) =
   | "Commit" ->
     let id = (node |> member "id") in
     let msg = (node |> member "msg") in
+    let committed = (node |> member "committed") in
     Commit
     (
       deserialize_string id,
-      deserialize_string msg
+      deserialize_string msg,
+      deserialize_string_list committed
     )
   | "Changes" ->
     let added = (node |> member "added") in
     let removed = (node |> member "removed") in
-    let committed = (node |> member "committed") in
     Changes
     (
       deserialize_string_list added,
-      deserialize_string_list removed,
-      deserialize_string_list committed
+      deserialize_string_list removed
     )
   | _ -> assert false
 

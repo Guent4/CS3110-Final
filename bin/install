@@ -22,6 +22,7 @@ if [[ " $file_content " =~ $regex ]]
     cd ${OASYS_BIN}/../
     bin/clean
     bin/compile
+    mkdir repos
     cd ${CUR_DIR}
     printf '\n\n%s\n%s\n' 'Installation Successful' 'Please restart your terminal for changes to be registered.'
 fi

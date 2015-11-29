@@ -1,4 +1,12 @@
 #!/bin/bash
+CUR_DIR=$(pwd)
+OASYS_REL_PATH="`dirname \"$0\"`"
+OASYS_ABS_PATH="`( cd \"$OASYS_REL_PATH\" && pwd )`"
+if [ -z "$OASYS_ABS_PATH" ] ; then
+  exit 1
+fi
+OASYS_DIR=${OASYS_ABS_PATH}
+cd ${OASYS_DIR}/../
 
 L_BLUE='\033[1;34m'
 GREEN='\033[0;32m'
@@ -19,6 +27,10 @@ printf "${GREEN}compiling ${CYAN}listops${NC}\n"
 cs3110 compile src/util/listops
 # camel
 printf "${L_BLUE}Compiling CAMEL\n"
+printf "${GREEN}compiling ${CYAN}atlas.ml${NC}\n"
+cs3110 compile src/camel/atlas -I src/types/
+printf "${GREEN}compiling ${CYAN}xiansheng.ml${NC}\n"
+cs3110 compile src/camel/xiansheng -I src/types/ -I src/util/
 printf "${GREEN}compiling ${CYAN}camel.ml${NC}\n"
 cs3110 compile src/camel/camel -I src/types/ -I src/util/
 # oasys
@@ -39,3 +51,7 @@ printf "${GREEN}compiling ${CYAN}main.ml${NC}\n"
 cs3110 compile src/main.ml -I src/types/ -I src/util/ -I src/oasys/ -I src/camel/
 # done
 printf "${L_BLUE}Done.${NC}\n"
+
+cd ${CUR_DIR}
+
+exit
