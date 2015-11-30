@@ -30,7 +30,7 @@ OASys Documentation
 <DIFF> - View all merge conflicts. (*NOT DONE*)
 	<--file> - DESCRIPTION
 	<-b or --branch> - DESCRIPTION
-s
+
 
 <STATUS> - This command lists the files that have changed, and thus need to be added and then committed in order to push to the remote repository. It will show all of the untracked files (only exist in working directory), modified files (tracked but not added to the index), and staged files (added to the index and ready to be commited).
 
