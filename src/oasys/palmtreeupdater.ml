@@ -1,4 +1,5 @@
 open Coconuts
+open Async.Std
 
 let oasys_dir = ".oasys/"
 
@@ -428,6 +429,24 @@ let status tree config repo_dir current_branch =
   let tree = {tree with work_dir = work_dir} in
   (tree,config,Success feedback)
 
+let sec = Core.Std.sec
+
+let test_async_eq (d : 'a Deferred.t) (v : 'a) : bool =
+  Thread_safe.block_on_async (fun () -> d) = Core.Std.Result.Ok v
+
+let pause () = test_async_eq ((after (sec 3.)) >>= fun x -> return ()) ()
+
+let push tree config repo_dir current_branch =
+  let hash = string_of_int (Hashtbl.hash repo_dir) in
+  let repo_state_path = "./repos/" ^ hash ^ ".json" in
+  let data = Fileio.read_str repo_state_path in
+  let req = {host="localhost"; port=8080; data=data; cmd="PUSH"} in
+  let res = (Camelrider.send_request_to_server req) in
+  let _ = pause () in
+  match Deferred.peek (res) with
+  | Some (false,_) -> (tree,config,Failure "push failed")
+  | Some (true,_) -> (tree,config,Success "push succeeded")
+  | None -> (tree,config,Failure "timeout")
 
 let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * config * feedback =
   let (repo_dir, current_branch) = get_config config in
@@ -449,7 +468,6 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
   | (COMMIT,[MSG],[message]) -> commit tree config repo_dir current_branch message
   | (STATUS,[EMPTY],[]) -> status tree config repo_dir current_branch
   | (LOG,[EMPTY],[]) -> log tree config repo_dir current_branch
+  | (PUSH,[EMPTY],[]) -> push tree config repo_dir current_branch
   | (HELP,_,_) -> (tree, config, Success Feedback.empty)
   | _ -> (tree,config,Failure Feedback.no_support)
-
-let handle_request (cmd,data) = failwith "unimplemented"

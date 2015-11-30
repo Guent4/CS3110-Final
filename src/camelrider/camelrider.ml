@@ -22,20 +22,23 @@ let handle_request ~(body)
             | None -> "NO COMMAND" in
   match request.meth with
     | `GET -> if cmd = "VERIFY" then
-                match Palmtreeupdater.handle_request (cmd,None) with
+                Server.respond (Code.status_of_code 200)
+                (* match Palmtreeupdater.handle_request (cmd,None) with
                 | (true,_) -> Server.respond (Code.status_of_code 200)
-                | _ -> Server.respond (Code.status_of_code 401)
+                | _ -> Server.respond (Code.status_of_code 401) *)
               else if cmd = "PULL" then
-                match Palmtreeupdater.handle_request (cmd,None) with
+                Server.respond (Code.status_of_code 200)
+(*                 match Palmtreeupdater.handle_request (cmd,None) with
                 | (true,Some data) -> Server.respond_with_string data
-                | _ -> Server.respond (Code.status_of_code 400)
+                | _ -> Server.respond (Code.status_of_code 400) *)
               else
                 Server.respond_with_string "" ~code: `Bad_request
     | `POST ->  if cmd = "POST" then
-                  Body.to_string body >>= fun body' ->
+                Server.respond (Code.status_of_code 200)
+                  (* Body.to_string body >>= fun body' ->
                   match Palmtreeupdater.handle_request (cmd,Some body') with
                   | (true,_) -> Server.respond (Code.status_of_code 200)
-                  | _ -> Server.respond (Code.status_of_code 400)
+                  | _ -> Server.respond (Code.status_of_code 400) *)
                 else
                   Server.respond_with_string "" ~code: `Bad_request
     | _ -> Server.respond_with_string "" ~code: `Bad_request

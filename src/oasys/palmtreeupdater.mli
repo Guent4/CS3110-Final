@@ -7,7 +7,3 @@ open Coconuts
  *  of the branch that we are in, and the path of the repository directory.
  *  Also outputs a string that gives user feedback *)
 val update_tree : cmd_expr -> palm_tree -> config -> palm_tree * config * feedback
-
-(* Performs an action according to a command and provided data and outputs
-   feedback and manipulated/generated data*)
-val handle_request: (string * string option) -> (bool * string option)
