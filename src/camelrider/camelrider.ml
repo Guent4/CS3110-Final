@@ -55,19 +55,30 @@ let stop () =
   else
     failwith "No server to close"
 
+let pause () = after (Core.Std.sec 3.) >>| fun () -> ()
+
+let rec while_pause x =
+  ignore(pause());
+  match Deferred.peek x with
+  | Some y -> y
+  | None -> while_pause x
+
 (* Constructs an HTTP request to send to a server and returns a bool
  * indicating request success and a string option with potential data *)
 let send_request_to_server req =
   let url_str = "http://" ^ req.host ^ ":" ^(string_of_int req.port) in
   let base_uri = Uri.of_string url_str in
   let query_uri = Uri.add_query_param base_uri ("cmd", [req.cmd]) in
-    (* GET request if cmd is PULL *)
+  let time_out = 30. in
+  (* GET request if cmd is PULL *)
+  let to_return =
+    Deferred.any[(after (Core.Std.sec time_out) >>| fun() -> (false, None));
     if req.cmd = "PULL" then
       (Client.get(query_uri)) >>= fun (response, body) ->
       match (Response.status response) with
       (* If successful, return true and data *)
-      | `OK -> (Body.to_string body) >>= fun body' ->
-               return (true, Some body')
+      | `OK -> (Body.to_string body) >>| fun body' ->
+               (true, Some body')
       (* Else fail and return no data *)
       | _ -> return (false, None)
     (* GET request if cmd is VERIFY *)
@@ -93,3 +104,6 @@ let send_request_to_server req =
       | _ -> (false, None)
     else
       return (false, None)
+    ] in
+    while_pause to_return
+
