@@ -187,21 +187,30 @@ let rm_branch tree config repo_dir current_branch branch_name =
 
 let reset_file tree config repo_dir current_branch file_name =
   let work_dir = get_work_dir repo_dir in
+  let (id,_,committed) = tree.head in
   match List.mem file_name work_dir with
   | false ->
     let tree = {tree with work_dir=work_dir} in
     (tree, config, Failure (Feedback.cannot_find file_name))
   | true ->
-    let (added,removed) = tree.index in
-    let added = added |-| [file_name] in
-    let removed = removed |-| [file_name] in
-    let tree = {
-      head=tree.head;
-      index=(added,removed);
-      work_dir=work_dir;
-      commit_tree=tree.commit_tree
-    } in
-    (tree, config, Success (Feedback.file_reset file_name) )
+    (match List.mem file_name committed with
+    | false ->
+      let tree = {tree with work_dir=work_dir} in
+      (tree, config, Failure ("ambiguous argument \'"^file_name^"\': unknown revision or path not in the working tree."))
+    | true ->
+      let (added,removed) = tree.index in
+      let added = added |-| [file_name] in
+      let removed = removed |-| [file_name] in
+      let source_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
+      let target_dir = repo_dir in
+      let () = copy_over_files repo_dir [file_name] source_dir target_dir in
+      let tree = {
+        head=tree.head;
+        index=(added,removed);
+        work_dir=work_dir;
+        commit_tree=tree.commit_tree
+      } in
+      (tree, config, Success (Feedback.file_reset file_name) ))
 
 let commit tree config repo_dir current_branch msg =
   let work_dir = get_work_dir repo_dir in
@@ -488,6 +497,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config):palm_tree * conf
   | (RM,[EMPTY],files) -> file_batch_op rm_file tree config repo_dir current_branch files
   | (RM,[FILE],files) -> file_batch_op rm_file tree config repo_dir current_branch files
   | (RM,[BNCH],[branch_name]) -> rm_branch tree config repo_dir current_branch branch_name
+  | (RESET,[EMPTY],files) -> file_batch_op reset_file tree config repo_dir current_branch files
   | (RESET,[FILE],files) -> file_batch_op reset_file tree config repo_dir current_branch files
   | (RESET,[BNCH],[hash]) -> reset_branch_mixed tree config repo_dir current_branch hash
   | (RESET,[HARD],[hash]) -> reset_branch_hard tree config repo_dir current_branch hash
