@@ -35,3 +35,7 @@ val create_dir : string -> unit
 val remove_dir : string -> unit
 
 val remove_file : string -> unit
+
+val diff_files : string -> string -> string -> string -> ((string list) * ((string * string) list))
+
+val merge_files : string -> string -> string -> string -> string -> unit

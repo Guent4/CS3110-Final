@@ -1,30 +1,27 @@
-let rec lcs l1 l2 accum accum1 accum2 result n1 n2 n3 =
+let rec lcs l1 l2 diff sum n1 n2 n3 =
   match l1,l2 with
-  | [],_ | _,[] -> (accum, accum1, accum2, result)
+  | [],_ | _,[] ->
+    (diff,
+    sum @
+    (List.map (fun x -> (x,n1)) l1) @
+    (List.map (fun x -> (x,n2)) l2))
   | x::xs,y::ys ->
     (
     match x = y with
     | true ->
-      lcs xs ys (accum @ [x]) accum1 accum2 (result @ [(x,n3)]) n1 n2 n3
+      lcs xs ys (diff @ [x]) (sum @ [(x,n3)]) n1 n2 n3
     | false ->
-      let (r1,r1',r1'',result1) = lcs l1 ys [] accum1 (accum2 @ [y]) (result @ [(y,n2)]) n1 n2 n3 in
-      let (r2,r2',r2'',result2) = lcs xs l2 [] (accum1 @ [x]) accum2 (result @ [(x,n1)]) n1 n2 n3 in
+      let (diff1,sum1) = lcs l1 ys [] (sum @ [(y,n2)]) n1 n2 n3 in
+      let (diff2,sum2) = lcs xs l2 [] (sum @ [(x,n1)]) n1 n2 n3 in
       (
-      match List.length r1 > List.length r2 with
-      | true -> ((accum @ r1), (r1'), (r1''), result1)
-      | false -> ((accum @ r2), (r2'), (r2''), result2)
+      match List.length diff1 > List.length diff2 with
+      | true -> ((diff @ diff1), sum1)
+      | false -> ((diff @ diff2), sum2)
       )
     )
 
-
 let read_list (filename:string) : string list =
   Core.Std.In_channel.read_lines filename
-
-let diff f1 f2 =
-  let l1 = read_list f1 in
-  let l2 = read_list f2 in
-  let (_,_,_,result) = lcs l1 l2 [] [] [] [] f1 f2 "both" in
-  result
 
 let write_list (filename:string) (sl:string list) : unit =
   Core.Std.Out_channel.write_lines filename sl
@@ -61,8 +58,14 @@ let remove_dir dir =
 let remove_file filename =
   FileUtil.rm [filename]
 
-let merge f1 f2 f3 =
-  let diff_list = (diff f1 f2) in
-  let (content_list,_) = List.split diff_list in
+let diff_files f1 f2 c1 c2 =
+  let l1 = read_list f1 in
+  let l2 = read_list f2 in
+  let (diff,merge) = lcs l1 l2 [] [] c1 c2 "both" in
+  (diff,merge)
+
+let merge_files f1 f2 f3 c1 c2 =
+  let (_,merge) = (diff_files f1 f2 c1 c2) in
+  let (content_list,_) = List.split merge in
   let () = write_list f3 content_list in
   ()

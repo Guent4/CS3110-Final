@@ -104,6 +104,7 @@ let arg_num_expected =
       ((DIFF,EMPTY),[0]);     ((DIFF,FILE),[2]);  ((DIFF,BNCH),[0;2]);
       ((PUSH,EMPTY),[0]);
       ((HELP,EMPTY),[-2]);    ((HELP,CMD),[1]);
+      ((MERGE,EMPTY),[1]);
       ((CONFIG,CONFIG_SET),[2]);
     ] in
   List.fold_left (fun acc x -> match x with | (x,y) -> M.add x y acc) M.empty lst

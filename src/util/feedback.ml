@@ -12,6 +12,7 @@ let file_marked_for_removal file_name = file_name ^ " has been marked for remova
 let file_unchanged file_name = file_name ^ " has neither been added nor marked for removal"
 let no_changes = "no files have been added nor marked for removal"
 let changes_committed current_branch id message = "Commit successful.\n[" ^ current_branch ^ " " ^ id ^ "] " ^ message ^ "\n"
+let merge_committed current_branch id message = "Merge successful.\n[" ^ current_branch ^ " " ^ id ^ "] " ^ message ^ "\n"
 let branch_exists branch_name = branch_name ^ " already exists"
 let branch_created branch_name = branch_name ^ " was created"
 let branch_checkout_uncommitted_changes = "cannot checkout a new branch until all changes have been committed"

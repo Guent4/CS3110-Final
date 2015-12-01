@@ -488,6 +488,59 @@ let config_set tree config repo_dir current_branch key value =
   )
   | _ -> (tree,config,Failure "Unrecognized key")
 
+let merge_heads source target repo_dir branch_name state =
+  let (id',_,committed') = source in
+  let (id'',_,committed'') = target in
+  let resolved = (committed' |-| committed'') |+| (committed'' |-| committed') in
+  let conflicted = (committed' |+| committed'') |-| resolved in
+  let source_resolved = resolved |-| committed'' in
+  let target_resolved = resolved |-| committed' in
+  let source_dir = repo_dir ^ oasys_dir ^ id' ^ "/" in
+  let target_dir = repo_dir ^ oasys_dir ^ id'' ^ "/" in
+  let () = copy_over_files repo_dir source_resolved source_dir repo_dir in
+  let () = copy_over_files repo_dir target_resolved target_dir repo_dir in
+  let conflicted' = abbrev_files repo_dir conflicted in
+  let () =
+    List.iter
+    (fun c ->
+      let f1 = source_dir ^ c in
+      let f2 = target_dir ^ c in
+      let f3 = repo_dir ^ c in
+      let () = Fileio.merge_files f1 f2 f3 "HEAD" branch_name in
+      ()
+    )
+    conflicted'
+  in
+  let id = gen_hash state in
+  (id,"merge from "^branch_name,resolved |+| conflicted)
+
+let merge tree config repo_dir current_branch branch_name =
+  let work_dir = get_work_dir repo_dir in
+  let commit_tree = tree.commit_tree in
+  let branch = CommitTree.find current_branch commit_tree in
+  match branch with
+  | source_head::source_tail ->
+    let branch' = CommitTree.find branch_name commit_tree in
+    (match branch' with
+    | target_head::_ ->
+      let (id,msg,committed) = merge_heads source_head target_head repo_dir branch_name (tree,config) in
+      let source_dir = repo_dir in
+      let target_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
+      let () = Fileio.create_dir (repo_dir ^ oasys_dir ^ id ^ "/") in
+      let () = copy_over_files repo_dir committed source_dir target_dir in
+      let head = (id,msg,committed) in
+      let branch = head :: source_head :: source_tail in
+      let commit_tree = CommitTree.add current_branch branch commit_tree in
+      let tree = {
+        head=head;
+        index=([],[]);
+        work_dir=work_dir;
+        commit_tree=commit_tree
+      } in
+      (tree,config,Success (Feedback.merge_committed current_branch id msg))
+    | [] -> assert false)
+  | [] -> assert false
+
 let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config):palm_tree * config * feedback =
   let (repo_dir, current_branch) = get_config config in
   match cmd with
@@ -509,6 +562,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config):palm_tree * conf
   | (COMMIT,[MSG],[message]) -> commit tree config repo_dir current_branch message
   | (STATUS,[EMPTY],[]) -> status tree config repo_dir current_branch
   | (LOG,[EMPTY],[]) -> log tree config repo_dir current_branch
+  | (MERGE,[EMPTY],[branch_name]) -> merge tree config repo_dir current_branch branch_name
   | (PUSH,[EMPTY],[]) -> push tree config repo_dir current_branch
   | (HELP,_,_) -> (tree, config, Success Feedback.empty)
   | (CONFIG,[CONFIG_SET],[key;value]) -> config_set tree config repo_dir current_branch key value
