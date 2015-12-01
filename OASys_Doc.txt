@@ -12,24 +12,23 @@ OASys Documentation
 	<-m or --message> - This options allows you to write a message that will be included in your commit history, Althought not necessary, it is good to use "" when typing your message.
 
 
-<PUSH> - Pushes all of the modified local files to the remote repository and advance the branches in the remote repository. This is useful for backing up data to the cloud and collaboration with a team and sharing files is needed.
+<PUSH> - Pushes all of the modified local files to the remote repository and advance the branches in the remote repository. This is useful for backing up data to the cloud and collaboration with a team and sharing files is needed. Note, only the last commit will be pushed; all further uncommitted changes will not be pushed.
 
 
-<PULL> - Pulls the files from the remote repository down to the local repository and merge all of the remote files with the current local ones. Merge conflicts may arise due to different changes to the same file.
+<PULL> - Pulls the files from the remote repository down to the local repository and merge all of the remote files with the current local ones. It is important to commit all changes before calling pull. Merge conflicts may arise due to different changes to the same file on the remote and local repositories.
 
 
 <BRANCH> - This command lists all of the existing branches. A branch enables you to receive thee current state of the files from the remote repository and change them without affecting the master repository itself. If names are provided after "branch", those will become new branches.
 
 
 <CHECKOUT> - This command allows you to switch to a different branch and have access to the current files in that branch. Enter the name of the desired branch after "checkout".
+	<-b or --branch> Creates new branch and switch that that branch
 
 
-<MERGE> - Merge branch into active repository. (*NOT DONE*)
+<MERGE> - Merge branch into active repository.  If you are currently in branch B, "merge master" would merge the data and files in master into the current branch, B.
 
 
-<DIFF> - View all merge conflicts. (*NOT DONE*)
-	<--file> - DESCRIPTION
-	<-b or --branch> - DESCRIPTION
+<DIFF> - (*NOT DONE*)
 
 
 <STATUS> - This command lists the files that have changed, and thus need to be added and then committed in order to push to the remote repository. It will show all of the untracked files (only exist in working directory), modified files (tracked but not added to the index), and staged files (added to the index and ready to be commited).
@@ -48,9 +47,7 @@ OASys Documentation
 <LOG> - This command displays a log of all the commits you have made.
 
 
-<RESET> - This command drops all the local changes you have made and retrieves the most current version of your fiels from the remote repository.
-	<--file> - DESCRIPTION
-	<-b or --branch> - DESCRIPTION (*NOT DONE*)
+<RESET> - (*NOT DONE*) There are two main types of RESET, FILE RESET and BRANCH RESET.
 
 
 <RM> - This command removes files or branches from the versioning structure.
@@ -59,6 +56,3 @@ OASys Documentation
 
 
 <QUIT> - This command exits the OASys program.
-
-
-<INVALID_CMD> - Invalid Command.

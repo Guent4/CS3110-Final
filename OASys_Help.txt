@@ -20,12 +20,6 @@ OASys Help
 <RESOLVING MERGE CONFLICTS> - Sometimes merge conflicts arise due to changes being made to the same line or block of code and therefore confusing the version control as to which version to take.  The response to merge would show what files have merge conflicts.  Inside the file, there will be a section that is divided into two subsections, each showing what one version of the file looks like for that line or block of code.  Resolving merge conflicts is mandatory; your code will not compile if they are not resolved.
 
 
-<ADDING A BRANCH> - This is how you add a branch
-
-
-<DELETE/REMOVE A BRANCH> - This is how you delete a branch
-
-
 <ADDING A FILE> - A file can be added to the working directory like normal.  However, in order for the file to be tracked and included in the version control tree, ADD must be called.  For more information on how to use "oasys add", type "oasys help --cmd add".
 
 
@@ -41,7 +35,7 @@ OASys Help
 <CONCEPT BEHIND MERGE> -
 
 
-<REVERTING/GOING BACK TO OLD COMMIT> - If you want to go back permanently and get rid of all changes since, use "reset --hard". If you just want to maintain the current file, but just change where you are on the line of commits, use "reset --soft". For more information, search: "soft vs mixed vs hard reset".
+<REVERTING/GOING BACK TO OLD COMMIT> - If you want to go back permanently and get rid of all changes since, use "oasys reset --hard". If you just want to maintain the current file, but just change where you are on the line of commits, use "oasys reset --soft". For more information, search: "soft vs mixed vs hard reset".
 
 
 <RESET BACK TO HEAD> - If you want to get rid of all changes since the last commit, use HARD RESET. For more information, search: "soft vs mixed vs hard reset".
@@ -56,12 +50,15 @@ OASys Help
 <DIFFERENCE BETWEEN STAGED AND UNSTAGED FILES> - Staged files will be recorded by the next commit call while unstaged files will not be recorded. In order to change an unstaged file to staged, call ADD. For more information, refer to "what is a staging area" and the ADD command.
 
 
-<WHAT IS BRANCH> -
+<WHAT IS BRANCH> - All branches are pointers that point to specific lines of commits. For example, pretend that there is a linear line of commits, A-B-C-D. "master" is the main branch and has a pointer that points to D. Say that you reset back to B and then create a new branch, a new pointer is created that points to B. Checkout to the a certain branch just consists of moving the HEAD pointer either to the master pointer or the new branch pointer.  This in turn will point to the commit that that branch points to.
+For more information on why to branch, refer to:
+- "why branch"
+- "proper way to work on a team project with branching"
 
 
 <WHY BRANCH> - Here are some reasons for branching:
 - Working on a team. Refer to "proper way to work on a team project with branching"
-- Maintaining a successful master. If master must always work for some reason (i.e. used for demos, is what other people see and download), then a branch should be made to add new features.  This way, you can still commit without worrying as heavily on whether or not every little detail is perfect during the developemnt of the new feature.
+- Maintaining a successful master. If master must always work for some reason (i.e. used for demos, is what other people see and download), then a branch should be made to add new features. This way, you can still commit without worrying as heavily on whether or not every little detail is perfect during the developemnt of the new feature.
 - Working on multiple features at once. If you are in the middle of adding a new feature, but decide another feature is more important, then you can leave the half-finished feature in a branch and create a new branch to work on the more important feature.
 
 
@@ -72,16 +69,23 @@ OASys Help
 	- PULL and PUSH commands
 
 
-<WHAT IS A REPOSITORY>
+<ADDING A BRANCH> - There are two ways to create a new branch:
+- "oasys branch new_branch1 new_branch2 ..." - This is a fast way to create many branches at onces. Does not change HEAD pointer.
+- "oasys checkout -b new_branch" - You can only create one branch with this. However, HEAD is updated so it points to the new pointer.
 
 
-<DIFFERENCE BETWEEN LOCAL AND REMOTE REPOSITORY>
+<DELETE/REMOVE A BRANCH> - A branch can be deleted by calling "oasys rm -b brach_name".
 
 
-<WHAT IS CLONE>
+<WHAT IS A REPOSITORY> - All of the information (set of commit objects, HEAD and branch pointers, etc.) is stored in a data structure called the repository. Commit objects contain a hash value, references to parent commit objects, and a set of files reflecting the commit snapshot. For more information on local and remote repositories, refer to "differences between local and remote repositories"
 
 
-<COMMIT HASH>
+<DIFFERENCE BETWEEN LOCAL AND REMOTE REPOSITORY> - Two important types of repos are:
+- Local - This is the repository on your computer containing all of the personal version control data.
+- Remote - This is a cloud based repository that allows data to be shared amonst different machines. The role of push and pull is to update the local and remote repositories so that they contain the same data.
+
+
+<COMMIT HASH> - The commit hash is a unique identifier for a commit object (note, emphasis on "unique"). It can be used to reference a specific commit.
 
 
 <SOME OTHER TOPIC> - Add more topics
