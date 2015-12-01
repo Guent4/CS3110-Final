@@ -1,7 +1,7 @@
 OASys Help
 
 
-<PROPER WAY TO PUSH> - This is the proper procedure to push
+<PROPER WAY TO PUSH PULL> - This is the proper procedure to push
 	- checkout master
 	- pull (there should not be any merge conflict)
 	- checkout your_branch_name
@@ -12,13 +12,12 @@ OASys Help
 	For more information, search:
 	- fast-forwarding
 	- merge
-	- resolving merge conflicts
 
 
-<FAST-FORWARDING> - Explanation
+<FAST-FORWARDING> - If master has not diverged since the last common ancestor with the current branch, then instead of creating a new commit, master will just point to latest feature of the current branch. A fast-forward merge will result in a linear series of commits; a non-fast-forward merge would keep master and the current branch separateed and therefore result in two parallel commit lines. Fast-forwarding makes sense for short-lived branches while non-fast-forwarding makes it difficult to interpret and understand the history.
 
 
-<RESOLVING MERGE CONFLICTS> - This is how you resolve merge conflicts.
+<RESOLVING MERGE CONFLICTS> - Sometimes merge conflicts arise due to changes being made to the same line or block of code and therefore confusing the version control as to which version to take.  The response to merge would show what files have merge conflicts.  Inside the file, there will be a section that is divided into two subsections, each showing what one version of the file looks like for that line or block of code.  Resolving merge conflicts is mandatory; your code will not compile if they are not resolved.
 
 
 <ADDING A BRANCH> - This is how you add a branch
@@ -27,34 +26,50 @@ OASys Help
 <DELETE/REMOVE A BRANCH> - This is how you delete a branch
 
 
-<ADDING A FILE>
+<ADDING A FILE> - A file can be added to the working directory like normal.  However, in order for the file to be tracked and included in the version control tree, ADD must be called.  For more information on how to use "oasys add", type "oasys help --cmd add".
 
 
-<DELETE/REMOVE A FILE>
+<DELETE/REMOVE A FILE> - If a file needs to be removed from the version control, use "oasys -rm file_name".  This will both remove the file from the repository and delete it from the local file system.
 
 
-<SOFT VS MIXED VS HARD RESET> -
+<SOFT VS MIXED VS HARD RESET> - There are three types of RESETs:
+	- SOFT - Only moves the HEAD pointer. Both the index and the working directory are not changed. Therefore SOFT RESET is useful for redoing a commit and combining several commits into one.
+	- MIXED (default) - Moves both the HEAD pointer to the new location and also modifies the index to match that of the new HEAD even thoug hall changes in the working directory are still there. The changes in the working directory are unstaged at this point. Therefore COMMIT will not do anything because the index matches HEAD. To COMMIT the changes, call ADD on all the files and then COMMIT.
+	- HARD - HEAD pointer, index, and the working directory are all moved. Note, this is probably what you are thinking of when you think of RESET. Since the working directory is updated, what you see in your files is what was commited previously. This is useful for going back in time and getting rid of all the changes since that commit
 
 
 <CONCEPT BEHIND MERGE> -
 
 
-<REVERTING/GOING BACK TO OLD COMMIT> -
+<REVERTING/GOING BACK TO OLD COMMIT> - If you want to go back permanently and get rid of all changes since, use "reset --hard". If you just want to maintain the current file, but just change where you are on the line of commits, use "reset --soft". For more information, search: "soft vs mixed vs hard reset".
 
 
-<RESET BACK TO HEAD>
+<RESET BACK TO HEAD> - If you want to get rid of all changes since the last commit, use HARD RESET. For more information, search: "soft vs mixed vs hard reset".
 
 
-<WHAT IS STAGING AREA>
+<WHAT IS STAGING AREA> - The staging area (or index) contains the information on a snapshot of the changed files that will go into the next commit. The normal workflow goes like this:
+	1. modify files in working directory
+	2. call ADD which adds snapshot of changed files into the staging area
+	3. call COMMIT which records what was in the staging area
 
 
-<DIFFERENCE BETWEEN STAGED AND UNSTAGED FILES>
+<DIFFERENCE BETWEEN STAGED AND UNSTAGED FILES> - Staged files will be recorded by the next commit call while unstaged files will not be recorded. In order to change an unstaged file to staged, call ADD. For more information, refer to "what is a staging area" and the ADD command.
 
 
-<WHY BRANCH>
+<WHAT IS BRANCH> -
 
 
-<PROPER WAY TO WORK ON A TEAM PROJECT WITH BRANCHING>
+<WHY BRANCH> - Here are some reasons for branching:
+- Working on a team. Refer to "proper way to work on a team project with branching"
+- Maintaining a successful master. If master must always work for some reason (i.e. used for demos, is what other people see and download), then a branch should be made to add new features.  This way, you can still commit without worrying as heavily on whether or not every little detail is perfect during the developemnt of the new feature.
+- Working on multiple features at once. If you are in the middle of adding a new feature, but decide another feature is more important, then you can leave the half-finished feature in a branch and create a new branch to work on the more important feature.
+
+
+<PROPER WAY TO WORK ON A TEAM PROJECT WITH BRANCHING> - All personal changes should be completed on a separate branch, not on master. This branch does not have to be public (aka have a remote version). This allows PULL requests to always fast-forward; pull will not work if there is a merge conflict between the local and remote versions. After a fast-forward pull, then the changes on the branch can be merged onto the master before pushing the master. Therefore, between the local master and remote master, at most one of them should have additional commits after the common ancestor.
+	For more information, refer to:
+	- "proper way to push pull"
+	- "fast-forward"
+	- PULL and PUSH commands
 
 
 <WHAT IS A REPOSITORY>
@@ -66,7 +81,7 @@ OASys Help
 <WHAT IS CLONE>
 
 
-<SOME OTHER TOPIC> - Add more topics
-
-
 <COMMIT HASH>
+
+
+<SOME OTHER TOPIC> - Add more topics
