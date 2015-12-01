@@ -29,6 +29,10 @@ cs3110 compile src/util/listops
 printf "${L_BLUE}Compiling CAMELRIDER\n"
 printf "${GREEN}compiling ${CYAN}camelrider.ml${NC}\n"
 cs3110 compile src/camelrider/camelrider -I src/types/ -I src/util/
+
+printf "${GREEN}compiling ${CYAN}camelhandler.ml${NC}\n"
+cs3110 compile src/camelrider/camelhandler -I src/types/ -I src/util/
+
 # camel
 printf "${L_BLUE}Compiling CAMEL\n"
 printf "${GREEN}compiling ${CYAN}atlas.ml${NC}\n"

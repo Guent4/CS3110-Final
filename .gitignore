@@ -1,1 +1,4 @@
 repos/*.json
+test_proj/
+oasys.rsa.pub
+oasys.rsa

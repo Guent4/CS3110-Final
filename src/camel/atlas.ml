@@ -50,7 +50,7 @@ let detranslate_cmd (cmd:cmd) : string =
   | INVALID_CMD s   -> s
 
 let opt_str_list = ["--message";"--all";"--set-upstream";"--delete";"--remove";
-  "--rename";"--branch";"--file";"--hard";"--mixed";"--soft"]
+  "--rename";"--branch";"--file";"--hard";"--mixed";"--soft";"--add"]
 
 let translate_opt (opt_string:string) : opt =
   match opt_string with
@@ -66,6 +66,7 @@ let translate_opt (opt_string:string) : opt =
   | "--soft"                    -> SOFT
   | "-f" | "--file"             -> FILE
   | "--cmd"                     -> CMD
+  | "--set"                     -> CONFIG_SET
   | ""                          -> EMPTY
   | s                           -> INVALID_OPT s
 
@@ -83,6 +84,7 @@ let detranslate_opt (opt:opt) : string =
   | MIXED           -> "--mixed"
   | SOFT            -> "--soft"
   | CMD             -> "--cmd"
+  | CONFIG_SET      -> "--SET"
   | EMPTY           -> "<no options given>"
   | INVALID_OPT s   -> "s"
 
@@ -101,7 +103,8 @@ let arg_num_expected =
       ((CHECKOUT,EMPTY),[1]);
       ((DIFF,EMPTY),[0]);     ((DIFF,FILE),[2]);  ((DIFF,BNCH),[0;2]);
       ((PUSH,EMPTY),[0]);
-      ((HELP,EMPTY),[-2]);    ((HELP,CMD),[1])
+      ((HELP,EMPTY),[-2]);    ((HELP,CMD),[1]);
+      ((CONFIG,CONFIG_SET),[2]);
     ] in
   List.fold_left (fun acc x -> match x with | (x,y) -> M.add x y acc) M.empty lst
 

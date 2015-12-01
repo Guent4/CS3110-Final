@@ -429,26 +429,57 @@ let status tree config repo_dir current_branch =
   let tree = {tree with work_dir = work_dir} in
   (tree,config,Success feedback)
 
-let sec = Core.Std.sec
-
-let test_async_eq (d : 'a Deferred.t) (v : 'a) : bool =
-  Thread_safe.block_on_async (fun () -> d) = Core.Std.Result.Ok v
-
-let pause () = test_async_eq ((after (sec 3.)) >>= fun x -> return ()) ()
-
-let push tree config repo_dir current_branch =
-  let hash = string_of_int (Hashtbl.hash repo_dir) in
+let push tree config repo_dir current_branch = failwith "not implemented"
+(*   let hash = string_of_int (Hashtbl.hash repo_dir) in
   let repo_state_path = "./repos/" ^ hash ^ ".json" in
   let data = Fileio.read_str repo_state_path in
   let req = {host="localhost"; port=8080; data=data; cmd="PUSH"} in
   let res = (Camelrider.send_request_to_server req) in
-  let _ = pause () in
-  match Deferred.peek (res) with
-  | Some (false,_) -> (tree,config,Failure "push failed")
-  | Some (true,_) -> (tree,config,Success "push succeeded")
-  | None -> (tree,config,Failure "timeout")
+  match res with
+  | false,_ -> (tree,config,Failure "push failed")
+  | true,_ -> (tree,config,Success "push succeeded") *)
 
-let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * config * feedback =
+let config_set tree config repo_dir current_branch key value =
+  match key with
+  | "username" -> (tree,{config with username=value},Success ("set " ^ key))
+  | "password" ->
+    let hashed = string_of_int (Hashtbl.hash value) in
+    (
+      match config.password with
+        | "" -> (tree,{config with password=hashed},Success ("set " ^ key))
+        | _ ->
+        let () = Printf.printf "\n%s" "Enter old password: " in
+        let input = Pervasives.read_line() in
+        let hashed' = string_of_int (Hashtbl.hash input) in
+      (
+        match config.password = hashed' with
+        | false -> (tree,config,Failure "\nPassword incorrect.\n")
+        | true -> (tree,{config with password=hashed},Success ("set " ^ key))
+      )
+    )
+  | "upstream" ->
+  let delim = Str.regexp "@" in
+  (
+    match Str.split delim value with
+    | username::domain::_ ->
+    (
+      let public_key = Fileio.read_str "./oasys.rsa.pub" in
+      let req = {
+        host=domain;
+        port="6700";
+        data=public_key;
+        meth="POST";
+        cmd="PUBLICKEY"
+      } in
+      let (_,_) = Camelrider.send_request_to_server req in
+      let config = {config with upstream=value} in
+      (tree,config,Success ("set " ^ key))
+    )
+    | _ -> (tree,config,Failure "Bad upstream provided. Try: [username]@[domain]")
+  )
+  | _ -> (tree,config,Failure "Unrecognized key")
+
+let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config):palm_tree * config * feedback =
   let (repo_dir, current_branch) = get_config config in
   match cmd with
   | (INIT,[EMPTY],[]) -> init tree config repo_dir current_branch
@@ -470,4 +501,5 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config) :palm_tree * con
   | (LOG,[EMPTY],[]) -> log tree config repo_dir current_branch
   | (PUSH,[EMPTY],[]) -> push tree config repo_dir current_branch
   | (HELP,_,_) -> (tree, config, Success Feedback.empty)
+  | (CONFIG,[CONFIG_SET],[key;value]) -> config_set tree config repo_dir current_branch key value
   | _ -> (tree,config,Failure Feedback.no_support)

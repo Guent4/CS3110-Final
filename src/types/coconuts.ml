@@ -10,8 +10,8 @@ type arg = string
 (* All of the possible options that will be supported (i.e "-a" in
  *  "git add -a")
  *)
-type opt =  MSG | ALL | SETUPSTREAM | DELETE | REMOVE | RENAME | BNCH | FILE
-  | HARD | MIXED | SOFT | CMD | EMPTY | INVALID_OPT of string
+type opt = MSG | ALL | SETUPSTREAM | DELETE | REMOVE | RENAME | BNCH | FILE
+  | CONFIG_SET | HARD | MIXED | SOFT | CMD | EMPTY | INVALID_OPT of string
 
 (* This is the type that the user input will be parsed into.  The actual commands
  *  described in the cmd_expr will be executed later in OASys
@@ -20,7 +20,13 @@ type cmd_expr = cmd * opt list * arg list
 
 type file_path = string
 
-type config = {repo_dir: file_path; current_branch: string}
+type config = {
+  repo_dir: file_path;
+  current_branch: string;
+  username: string;
+  password: string;
+  upstream: string
+}
 
 type feedback = Success of string | Failure of string
 
@@ -59,4 +65,10 @@ type state = {config: config; tree: palm_tree}
 type json = Yojson.Basic.json
 
 (* Represents a client request. Contains a command and client information *)
-type client_req = {host:string; port:int; data:string; cmd:string}
+type client_req = {
+  host: string;
+  port: string;
+  data: string;
+  meth: string;
+  cmd: string;
+}

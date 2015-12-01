@@ -42,7 +42,11 @@ let serialize_palm_tree palm_tree =
 let serialize_config config =
   `Assoc
   [("repo_dir", serialize_string config.repo_dir);
-  ("current_branch", serialize_string config.current_branch)]
+  ("current_branch", serialize_string config.current_branch);
+  ("username", serialize_string config.username);
+  ("password", serialize_string config.password);
+  ("upstream", serialize_string config.upstream)
+  ]
 
 let serialize_state state =
   `Assoc
@@ -97,8 +101,13 @@ let deserialize_palm_tree palm_tree =
   | _ -> assert false
 
 let deserialize_config config =
-  {repo_dir=(config |> member "repo_dir" |> to_string);
-  current_branch=(config |> member "current_branch" |> to_string)}
+  {
+  repo_dir=(config |> member "repo_dir" |> to_string);
+  current_branch=(config |> member "current_branch" |> to_string);
+  username=(config |> member "username" |> to_string);
+  password=(config |> member "password" |> to_string);
+  upstream=(config |> member "upstream" |> to_string)
+  }
 
 let deserialize_state state =
   {config= deserialize_config (state |> member "config");
