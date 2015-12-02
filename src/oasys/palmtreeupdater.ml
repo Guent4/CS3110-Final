@@ -314,7 +314,6 @@ let checkout tree config repo_dir current_branch branch_name =
     | _ -> (tree,config,Failure (Feedback.no_repo))
     )
 
-
 let file_batch_op op tree config repo_dir current_branch files =
   let files' =
     List.fold_left
