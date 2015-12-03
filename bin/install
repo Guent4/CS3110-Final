@@ -24,6 +24,7 @@ if [[ " $file_content " =~ $regex ]]
     bin/compile
     bin/gen-keypair
     mkdir repos
+    mkdir ~/.oasys_origin
     cd ${CUR_DIR}
     printf '\n\n%s\n%s\n' 'Installation Successful' 'Please restart your terminal for changes to be registered.'
 fi
