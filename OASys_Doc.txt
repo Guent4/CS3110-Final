@@ -12,7 +12,7 @@ OASys Documentation
 	<-m or --message> - This options allows you to write a message that will be included in your commit history, Althought not necessary, it is good to use "" when typing your message.
 
 
-<PUSH> - Pushes all of the modified local files to the remote repository and advance the branches in the remote repository. This is useful for backing up data to the cloud and collaboration with a team and sharing files is needed. Note, only the last commit will be pushed; all further uncommitted changes will not be pushed.
+<PUSH> - Pushes all of the modified local files to the remote repository and advance the branches in the remote repository. This is useful for backing up data to the cloud and collaboration with a team and sharing files as needed. Note, only the last commit will be pushed; all further uncommitted changes will not be pushed.
 
 
 <PULL> - Pulls the files from the remote repository down to the local repository and merge all of the remote files with the current local ones. It is important to commit all changes before calling pull. Merge conflicts may arise due to different changes to the same file on the remote and local repositories.
