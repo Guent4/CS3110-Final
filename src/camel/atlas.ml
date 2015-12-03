@@ -141,6 +141,7 @@ let arg_num_expected =
       ((CHECKOUT,EMPTY),[1]);
       ((DIFF,EMPTY),[0]);     ((DIFF,FILE),[2]);  ((DIFF,BNCH),[0;2]);
       ((PUSH,EMPTY),[0]);
+      ((PULL,EMPTY),[0]);
       ((HELP,EMPTY),[-2]);    ((HELP,CMD),[1]);
       ((MERGE,EMPTY),[1]);
       ((CONFIG,CONFIG_SET),[2]);

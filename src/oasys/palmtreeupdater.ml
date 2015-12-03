@@ -445,6 +445,7 @@ let status tree config repo_dir current_branch =
   (tree,config,Success feedback)
 
 let config_set tree config repo_dir current_branch key value =
+  let work_dir = get_work_dir repo_dir in
   match key with
   | "username" -> (tree,{config with username=value},Success ("set " ^ key))
   | "password" ->
@@ -488,11 +489,12 @@ let config_set tree config repo_dir current_branch key value =
             password="";
             upstream=""
           } in
-          let head = ("","",[]) in
-          let index = ([],[]) in
-          let work_dir = [] in
           let commit_tree = CommitTree.empty in
-          let commit_tree = CommitTree.add current_branch [] commit_tree in
+          let (id,_,_) = tree.head in
+          let head = (id, Feedback.init_commit, []) in
+          let index = ([],[]) in
+          let branch = [head] in
+          let commit_tree = CommitTree.add current_branch branch commit_tree in
           let tree = {
             head=head;
             index=index;
@@ -501,9 +503,9 @@ let config_set tree config repo_dir current_branch key value =
           } in
           let state = {config=config; tree=tree} in
           let () = Cameljson.serialize state ("./repos/origin-"^repo_state_path^".json") in
+          let config = {config with upstream = value} in
           let _ = Sys.command("ssh -i ./oasys.rsa "^config.upstream^" \'mkdir -p ~/.oasys_origin/"^repo_state_path^"\'") in
           let _ = Sys.command("scp -i ./oasys.rsa ./repos/origin-"^repo_state_path^".json "^config.upstream^":~/.oasys_origin/"^repo_state_path^"/") in
-          let config = {config with upstream = value} in
           (tree,config,Success ("set " ^ key))
       )
     )
@@ -589,6 +591,7 @@ let merge tree config repo_dir current_branch branch_name =
     )
 
 let push tree config repo_dir current_branch =
+  let work_dir = get_work_dir repo_dir in
   let value = config.upstream in
   let delim = Str.regexp "@" in
   (
@@ -596,7 +599,7 @@ let push tree config repo_dir current_branch =
     | username::domain::_ ->
     (
       let repo_state_path = (string_of_int (Hashtbl.hash repo_dir)) in
-      let _ = Sys.command("scp -i ./oasys.rsa "^config.upstream^":~/.oasys_origin/"^repo_state_path^"/ ./repos/origin-"^repo_state_path^".json") in
+      let _ = Sys.command("scp -i ./oasys.rsa "^config.upstream^":~/.oasys_origin/"^repo_state_path^"/origin-"^repo_state_path^".json ./repos/") in
       let state' = Cameljson.deserialize ("./repos/origin-"^repo_state_path^".json") in
       let tree' = state'.tree in
       let commit_tree' = tree'.commit_tree in
@@ -606,7 +609,6 @@ let push tree config repo_dir current_branch =
         | true ->
           let commit_tree = tree.commit_tree in
           let head = tree.head in
-          let work_dir = tree.work_dir in
           let branch = CommitTree.find current_branch commit_tree in
           let branch' = CommitTree.find current_branch commit_tree' in
           let union = branch |+| branch' in
@@ -623,18 +625,69 @@ let push tree config repo_dir current_branch =
               let state' = {state' with tree=tree'} in
               let () = Cameljson.serialize state' ("./repos/origin-"^repo_state_path^".json") in
               let _ = Sys.command("scp -i ./oasys.rsa ./repos/origin-"^repo_state_path^".json "^config.upstream^":~/.oasys_origin/"^repo_state_path^"/") in
-              let head = tree.head in
-              let (id,_,_) = head in
-              let _ = Sys.command("zip -r ./remote/"^id^".zip "^repo_dir^oasys_dir^id) in
-              let _ = Sys.command("scp -i ./oasys.rsa ./remote/"^id^".zip "^config.upstream^":~/.oasys_origin/"^repo_state_path^"/") in
+              let _ = Sys.command("zip -r ./remote/"^repo_state_path^".zip "^repo_dir^oasys_dir^"*") in
+              let _ = Sys.command("scp -i ./oasys.rsa ./remote/"^repo_state_path^".zip "^config.upstream^":~/.oasys_origin/"^repo_state_path^"/") in
               (tree,config,Success "Push succeeded.")
             )
           else if union |=| branch' then
             (
-              (tree,config,Failure ("Cannot push. You are "^(string_of_int (List.length branch' - List.length branch))^" commits behind origin."))
+              (tree,config,Failure ("Cannot push. You are "^(string_of_int (List.length branch' - List.length branch))^" commit(s) behind origin."))
             )
           else
-            (assert false)
+            (tree,config,Failure "Unable to push")
+      )
+    )
+    | _ -> (tree,config,Failure "Bad upstream provided. Try: [username]@[domain]")
+  )
+
+let pull tree config repo_dir current_branch =
+  let work_dir = get_work_dir repo_dir in
+  let value = config.upstream in
+  let delim = Str.regexp "@" in
+  (
+    match Str.split delim value with
+    | username::domain::_ ->
+    (
+      let repo_state_path = (string_of_int (Hashtbl.hash repo_dir)) in
+      let _ = Sys.command("scp -i ./oasys.rsa "^config.upstream^":~/.oasys_origin/"^repo_state_path^"/origin-"^repo_state_path^".json ./repos/origin-"^repo_state_path^".json") in
+      let state' = Cameljson.deserialize ("./repos/origin-"^repo_state_path^".json") in
+      let tree' = state'.tree in
+      let commit_tree' = tree'.commit_tree in
+      (
+        match CommitTree.mem current_branch commit_tree' with
+        | false -> (tree,config,Failure ("No upstream branch exists with name "^current_branch))
+        | true ->
+          let commit_tree = tree.commit_tree in
+          let head' = tree'.head in
+          let branch = CommitTree.find current_branch commit_tree in
+          let branch' = CommitTree.find current_branch commit_tree' in
+          let union = branch |+| branch' in
+          if branch' |=| branch then
+            (tree,config,Success "Your branch is already up-to-date. Nothing to pull.")
+          else if union |=| branch' then
+            (let commit_tree = CommitTree.add current_branch branch' commit_tree in
+              let tree = {
+                head=head';
+                index=([],[]);
+                work_dir=work_dir;
+                commit_tree=commit_tree
+              } in
+              let state = {config=config; tree=tree} in
+              let () = Cameljson.serialize state ("./repos/"^repo_state_path^".json") in
+              let head = tree.head in
+              let (id,_,committed) = head in
+              let _ = Sys.command("unzip ./remote/"^repo_state_path^".zip -d "^repo_dir^oasys_dir) in
+              let source_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
+              let target_dir = repo_dir in
+              let () = copy_over_files repo_dir committed source_dir target_dir in
+              (tree,config,Success "Pull succeeded.")
+            )
+          else if union |=| branch then
+            (
+              (tree,config,Failure ("Cannot pull. You are "^(string_of_int (List.length branch - List.length branch'))^" commit(s) ahead of origin."))
+            )
+          else
+            (tree,config,Failure "Unable to pull.")
       )
     )
     | _ -> (tree,config,Failure "Bad upstream provided. Try: [username]@[domain]")
@@ -663,6 +716,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config):palm_tree * conf
   | (LOG,[EMPTY],[]) -> log tree config repo_dir current_branch
   | (MERGE,[EMPTY],[branch_name]) -> merge tree config repo_dir current_branch branch_name
   | (PUSH,[EMPTY],[]) -> push tree config repo_dir current_branch
+  | (PULL,[EMPTY],[]) -> pull tree config repo_dir current_branch
   | (HELP,_,_) -> (tree, config, Success Feedback.empty)
   | (CONFIG,[CONFIG_SET],[key;value]) -> config_set tree config repo_dir current_branch key value
   | _ -> (tree,config,Failure Feedback.no_support)
