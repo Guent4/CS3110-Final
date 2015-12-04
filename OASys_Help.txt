@@ -32,9 +32,6 @@ OASys Help
 	- HARD - HEAD pointer, index, and the working directory are all moved. Note, this is probably what you are thinking of when you think of RESET. Since the working directory is updated, what you see in your files is what was commited previously. This is useful for going back in time and getting rid of all the changes since that commit
 
 
-<CONCEPT BEHIND MERGE> -
-
-
 <REVERTING/GOING BACK TO OLD COMMIT> - If you want to go back permanently and get rid of all changes since, use "oasys reset --hard". If you just want to maintain the current file, but just change where you are on the line of commits, use "oasys reset --soft". For more information, search: "soft vs mixed vs hard reset".
 
 

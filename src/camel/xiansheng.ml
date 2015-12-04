@@ -2,11 +2,25 @@ open Coconuts
 open Fileio
 open Atlas
 
+(* This module is responsible for providing suggestions when an invalid input
+ * is detected.  Additionally, it is also responsible for implementing the HELP
+ * cmd; helpful information will be printed based on user input. *)
 
-let is_int s =
+
+(* [is_int s] - Determines if the string can be converted into an int.
+ * Parameters:
+ *    - s - the string being tested
+ * Returns: true if s can be converted to an int using int_of_string; false otherwise*)
+let is_int (s:string) : boolean =
   try ignore (int_of_string s); true
   with _ -> false
 
+(* [calc_lev str1 str2] - Calculates the Levenshtein Distance between str1 and
+ * str2.  This is used to determine how close two strings are.
+ * Parameters:
+ *    - str1 - first of the two strings to compare
+ *    - str2 - second of the two strings to compare
+ * Returns: the Levenshtein Distance between str1 and str2 *)
 let calc_lev (str1:string) (str2:string) : int =
   let minimum a b c = min (min a b) c in
   let str1c n = String.get str1 n in
@@ -29,15 +43,30 @@ let calc_lev (str1:string) (str2:string) : int =
       m.(i).(j) <- minimum l t d
     done
   done;
-  (* Array.iter (fun x -> Array.iter (fun y -> Printf.printf "%i\t" y) x; print_endline "") m; *)
   m.(x).(y)
 
+(* [print_sugg input dict] - If there are words from dict that have a Levenshtein
+ * Distance that is at most 2 units away, then print suggestions.  If there are
+ * no words from dict, then do nothing.
+ * Parameters:
+ *    - input - the user's input that does not match cmd or opt
+ *    - dict - the list of all of the accepted cmd or opt to compare input to
+ * Returns: unit; wii print words taht are within 2 Lenvenshtein Distance away;
+ *    do nothing otherwise *)
 let print_sugg (input:string) (dict:string list) : unit =
   let sugg = List.filter (fun x -> calc_lev input x <= 2) dict in
   if (List.length sugg > 0) then (print_endline "\t Do you happen to mean:";
       List.iter (fun x -> Printf.printf "\t\t%s\n" x) sugg)
   else ()
 
+(* [search_for_topic doc inputs] - Used for general search where a list of args
+ * are being searched.  Function finds all of the topics headers in doc that
+ * have a header that contains one or more of the words in inputs.
+ * Parameters:
+ *    - doc - the entire help document in the form of a string
+ *    - inputs - list of args (strings) that user is trying to search over
+ * Returns: all of the topic headers that contain one or more of the words in
+ *    inputs *)
 let search_for_topic (doc:string) (inputs:arg list) : string list =
   if (List.length inputs = 0) then (print_error 0; [])
   else (
@@ -53,6 +82,12 @@ let search_for_topic (doc:string) (inputs:arg list) : string list =
         Not_found -> acc) in
     find_topics [] 0)
 
+(* [help_empty a_s] - Given the arg list input, search for topics in the Help
+ * document and then print those.  Request user to select which topic they are
+ * interested in and then print the seleted article.
+ * Parameters:
+ *    - a_s - the list of string inputs that mark what user is trying to search for
+ * Returns: unit; function performs print and does not return anything useful*)
 let help_empty (a_s:arg list) : unit =
   let doc = Fileio.read_str help_loc in
   let topics = search_for_topic doc a_s in
@@ -77,6 +112,14 @@ let help_empty (a_s:arg list) : unit =
     else print_error 13
   )
 
+(* [help_cmd a_s] - User has selected that he wants to search for the documentation
+ * on one of the commands.  Function finds the docuemntation for that cmd in the
+ * Doc documentation and prints the results.  If a_s is empty, more than 1, or
+ * entry is not a command, then an error is printed.
+ * Parameters:
+ *    - a_s - the list containing the user input; if not valid string form of a
+ *      command, then print_error
+ * Retruns: unit; all actions are print which returns unit *)
 let help_cmd (a_s:arg list) : unit =
   if (List.length a_s = 0)
     then print_error 8
@@ -95,6 +138,13 @@ let help_cmd (a_s:arg list) : unit =
       Not_found -> print_error 11 ~s1:desired); ()
   )
 
+(* [offer_help expr] - Read expr and determine whether or not the user is trying
+ * to conduct a search for a command or a general search for a topic.  Will call
+ * the correct helper function accordingly.
+ * Parameters:
+ *    - expr - the parsed cmd_expr option that; using this, determine if user is
+ *    conducting a search and if so what type
+ * Returns: unit; only action is print *)
 let offer_help (expr:cmd_expr option) : unit =
   match expr with
   | Some (HELP,[EMPTY],a_s) -> help_empty a_s
