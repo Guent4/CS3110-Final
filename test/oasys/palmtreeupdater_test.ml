@@ -3,12 +3,13 @@ open Palmtreeupdater
 
 let setup_tree () =
   let () = Fileio.remove_dir "./test_proj/.oasys/" in
+  let dir = (Sys.getcwd()) ^ "/test_proj/" in
+  let config = {repo_dir=dir; current_branch="master"; username=""; password=""; upstream=""} in
   let tree = {head=("", "", []); index=([],[]); work_dir=[]; commit_tree= CommitTree.add "master" [] (CommitTree.empty)} in
-  let config = {repo_dir= "./test_proj/"; current_branch="master"; username=""; password=""; upstream=""} in
   (tree,config)
 
 let init tree config =
-  let cmd = (INIT,[],[]) in
+  let cmd = (INIT,[EMPTY],[]) in
   let (tree',config',feedback) = update_tree cmd tree config in
   (tree',config',feedback)
 
@@ -17,7 +18,7 @@ let init tree config =
   let (tree',config',feedback) = update_tree cmd tree config in
   (tree',config',feedback)
 
-let commit tree config msg = 
+let commit tree config msg =
   let cmd = (COMMIT,[],[msg]) in
   let (tree',config',feedback) = update_tree cmd tree config in
   (tree',config',feedback) *)
@@ -29,42 +30,48 @@ TEST_MODULE "init tests" = struct
   (
     Fileio.file_exists "./test_proj/.oasys/"
   )
-  (* TEST_UNIT "test tree"  = assert
+  TEST_UNIT "test tree"  = assert
   (
-    let master = CommitTree.find "master" tree' in
+    let master = CommitTree.find "master" tree'.commit_tree in
+    let x = [tree'.head] in
     match master with
-    | Changes([],[],[]) :: Commit (_,"initial commit") :: [] -> true
-    | _ -> false
-  ) *)
+    | y when y = x -> true
+    | _ -> (print_endline "hello"); false
+  )
   TEST_UNIT "test config"  = assert
   (
     config = config'
   )
-  TEST_UNIT "test feedback" = assert
-  (
+  TEST "test feedback" =(
+    let x = "Initialized empty OASYS repository in " ^ config'.repo_dir ^ ".oasys/" in
     match feedback with
-    | Success "a new oasys repository has been initialized" -> true
+    | Success y when y = x -> true
+    | _ -> false)
+  let (tree'',config'',feedback') = init tree' config'
+
+  TEST_UNIT "test feedback (x2)" = assert
+  (
+    match feedback' with
+    | Failure "an oasys repository already exists in this directory" -> true
     | _ -> false
   )
-  let (tree'',config'',feedback) = init tree' config'
+
   TEST_UNIT "test .oasys" = assert
   (
     Fileio.file_exists "./test_proj/.oasys/"
   )
-  TEST_UNIT "test tree (x2)"  = assert
-  (
-    tree'' = tree'
-  )
+
+  TEST_UNIT "test tree (x2)"  =
+    assert(tree''.head = tree'.head);
+    assert(tree''.index = tree'.index);
+    assert(tree''.commit_tree = tree'.commit_tree)
+    assert(tree''.work_dir = tree'.work_dir)
+
   TEST_UNIT "test config (x2)"  = assert
   (
     config'' = config'
   )
-  TEST_UNIT "test feedback (x2)" = assert
-  (
-    match feedback with
-    | Failure "an oasys repository already exists in this directory" -> true
-    | _ -> false
-  )
+
 end
 
 (* TEST_MODULE "add tests" = struct
@@ -123,6 +130,14 @@ TEST_MODULE "commit tests" = struct
   )
 end *)
 
+(* TEST_MODULE "rm tests" = struct
+  let (tree,config) = setup_tree ()
+  let (tree',config',feedback) = init tree config
+  TEST_UNIT "rm EMPTY" =
+    let cmd = (RM,[EMPTY],[]) in
 
 
+end
+
+ *)
 let () = Pa_ounit_lib.Runtime.summarize ()
