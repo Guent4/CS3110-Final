@@ -15,9 +15,9 @@ let init tree config =
 (* let add tree config filename =
   let cmd = (ADD,[],[filename]) in
   let (tree',config',feedback) = update_tree cmd tree config in
-  (tree',config',feedback)
+  (tree',config',feedback) *)
 
-let commit tree config msg =
+(* let commit tree config msg =
   let cmd = (COMMIT,[],[msg]) in
   let (tree',config',feedback) = update_tree cmd tree config in
   (tree',config',feedback) *)
@@ -29,13 +29,13 @@ TEST_MODULE "init tests" = struct
   (
     Fileio.file_exists "./test_proj/.oasys/"
   )
-  (* TEST_UNIT "test tree"  = assert
+  TEST_UNIT "test tree"  = assert
   (
-    let master = CommitTree.find "master" tree' in
+    let master = CommitTree.find "master" tree'.commit_tree in
     match master with
-    | Changes([],[],[]) :: Commit (_,"initial commit") :: [] -> true
+    | [] -> true
     | _ -> false
-  ) *)
+  )
   TEST_UNIT "test config"  = assert
   (
     config = config'
@@ -46,7 +46,7 @@ TEST_MODULE "init tests" = struct
     | Success y when y = x -> true
     | _ -> false)
 
-  let (tree'',config'',feedback) = init tree' config'
+  let (tree'',config'',feedback') = init tree' config'
   TEST_UNIT "test .oasys" = assert
   (
     Fileio.file_exists "./test_proj/.oasys/"
@@ -61,7 +61,7 @@ TEST_MODULE "init tests" = struct
   )
   TEST_UNIT "test feedback (x2)" = assert
   (
-    match feedback with
+    match feedback' with
     | Failure "an oasys repository already exists in this directory" -> true
     | _ -> false
   )
