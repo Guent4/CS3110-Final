@@ -119,7 +119,7 @@ let help_empty (a_s:arg list) : unit =
  * Parameters:
  *    - a_s - the list containing the user input; if not valid string form of a
  *      command, then print_error
- * Retruns: unit; all actions are print which returns unit *)
+ * Returns: unit; all actions are print which returns unit *)
 let help_cmd (a_s:arg list) : unit =
   if (List.length a_s = 0)
     then print_error 8
@@ -144,9 +144,9 @@ let help_cmd (a_s:arg list) : unit =
  * Parameters:
  *    - expr - the parsed cmd_expr option that; using this, determine if user is
  *    conducting a search and if so what type
- * Returns: unit; only action is print *)
-let offer_help (expr:cmd_expr option) : unit =
+ * Returns: None if the cmd was HELP; original expr input if otherwise *)
+let offer_help (expr:cmd_expr option) : cmd_expr option =
   match expr with
-  | Some (HELP,[EMPTY],a_s) -> help_empty a_s
-  | Some (HELP,[CMD],a_s) -> help_cmd a_s
-  | _ -> ()
+  | Some (HELP,[EMPTY],a_s) -> help_empty a_s; None
+  | Some (HELP,[CMD],a_s) -> help_cmd a_s; None
+  | _ -> expr

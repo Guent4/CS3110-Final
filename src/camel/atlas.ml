@@ -114,7 +114,7 @@ let detranslate_opt (opt:opt) : string =
   | MIXED           -> "--mixed"
   | SOFT            -> "--soft"
   | CMD             -> "--cmd"
-  | CONFIG_SET      -> "--SET"
+  | CONFIG_SET      -> "--set"
   | EMPTY           -> "<no options given>"
   | INVALID_OPT s   -> "s"
 
@@ -152,7 +152,7 @@ let arg_num_expected =
  * Key - cmd * EMPTY (Note QUIT and INVALID_CMD are not supported because they
  *      cannot have a default)
  * Value - The default opt *)
-let arg_num_default =
+let opt_default =
   let lst =
     [ ((INIT,EMPTY),EMPTY);
       ((LOG,EMPTY),EMPTY);
@@ -165,7 +165,7 @@ let arg_num_default =
       ((RM,EMPTY),FILE);
       ((DIFF,EMPTY),EMPTY);
       ((MERGE,EMPTY),EMPTY);
-      ((CONFIG,EMPTY),EMPTY);
+      ((CONFIG,CONFIG_SET),EMPTY);
       ((PUSH,EMPTY),EMPTY);
       ((PULL,EMPTY),EMPTY);
       ((CLONE,EMPTY),EMPTY);
@@ -180,7 +180,7 @@ let arg_num_default =
  *    - i1,i2 - Optional ints that are to be included in the error
  * Return: unit (the error is directly printed) *)
 let print_error ?s1:(s1="") ?s2:(s2="") ?i1:(i1=0) ?i2:(i2=0) = function
-  | 0 -> Printf.printf "\nWelcome to OASys!\nCreated by Gu, Ho, Moheed, and Ramalingam\n\nFor help, refer to the readme.txt file in the folder\nTo search up info about a specific command, type \"help --cmd command_name\".\nTo search up more general topics, type \"help search_word(s)\".\n\nFor more questions, contact ____\n\n"
+  | 0 -> Printf.printf "\nWelcome to OASys!\nCreated by Gu, Ho, Moheed, and Ramalingam\n\nTo search up info about a specific command, type \"help --cmd command_name\".\nTo search up more general topics, type \"help search_word(s)\".\n\nFor questions/comments/concerns, contact ____.\n\n"
   | 1 -> Printf.printf "FAILURE: \"%s\" is an invalid option.\n" s1
   | 2 -> Printf.printf "FAILURE: The \"%s\" command does not support more than 1 option.\n" s1
   | 4 -> Printf.printf "FAILURE: Invalid command given: \"%s\".\n" s1

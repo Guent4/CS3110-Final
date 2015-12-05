@@ -13,4 +13,4 @@ val print_sugg : string -> string list -> unit
     CMD, then the search is through OASys_Doc.txt and that is for the documentation
     for a specific command; therefore user must provide a valid command for this
     type of search*)
-val offer_help : cmd_expr option -> unit
+val offer_help : cmd_expr option -> cmd_expr option

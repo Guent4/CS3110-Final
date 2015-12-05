@@ -13,5 +13,5 @@ val interpret: string list -> (cmd_expr option)
 (* Performs the read function and then pipe output into interpret function *)
 val read_interpret : unit -> string * cmd_expr
 
-(* Responsible for taking a feedback variant and printing it to the the terminal *)
+(* Takes a feedback variant and prints it to the the terminal *)
 val output: feedback -> unit

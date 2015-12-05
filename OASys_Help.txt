@@ -49,14 +49,14 @@ OASys Help
 
 <WHAT IS BRANCH> - All branches are pointers that point to specific lines of commits. For example, pretend that there is a linear line of commits, A-B-C-D. "master" is the main branch and has a pointer that points to D. Say that you reset back to B and then create a new branch, a new pointer is created that points to B. Checkout to the a certain branch just consists of moving the HEAD pointer either to the master pointer or the new branch pointer.  This in turn will point to the commit that that branch points to.
 For more information on why to branch, refer to:
-- "why branch"
-- "proper way to work on a team project with branching"
+	- "why branch"
+	- "proper way to work on a team project with branching"
 
 
 <WHY BRANCH> - Here are some reasons for branching:
-- Working on a team. Refer to "proper way to work on a team project with branching"
-- Maintaining a successful master. If master must always work for some reason (i.e. used for demos, is what other people see and download), then a branch should be made to add new features. This way, you can still commit without worrying as heavily on whether or not every little detail is perfect during the developemnt of the new feature.
-- Working on multiple features at once. If you are in the middle of adding a new feature, but decide another feature is more important, then you can leave the half-finished feature in a branch and create a new branch to work on the more important feature.
+	- Working on a team. Refer to "proper way to work on a team project with branching"
+	- Maintaining a successful master. If master must always work for some reason (i.e. used for demos, is what other people see and download), then a branch should be made to add new features. This way, you can still commit without worrying as heavily on whether or not every little detail is perfect during the developemnt of the new feature.
+	- Working on multiple features at once. If you are in the middle of adding a new feature, but decide another feature is more important, then you can leave the half-finished feature in a branch and create a new branch to work on the more important feature.
 
 
 <PROPER WAY TO WORK ON A TEAM PROJECT WITH BRANCHING> - All personal changes should be completed on a separate branch, not on master. This branch does not have to be public (aka have a remote version). This allows PULL requests to always fast-forward; pull will not work if there is a merge conflict between the local and remote versions. After a fast-forward pull, then the changes on the branch can be merged onto the master before pushing the master. Therefore, between the local master and remote master, at most one of them should have additional commits after the common ancestor.
@@ -67,8 +67,8 @@ For more information on why to branch, refer to:
 
 
 <ADDING A BRANCH> - There are two ways to create a new branch:
-- "oasys branch new_branch1 new_branch2 ..." - This is a fast way to create many branches at onces. Does not change HEAD pointer.
-- "oasys checkout -b new_branch" - You can only create one branch with this. However, HEAD is updated so it points to the new pointer.
+	- "oasys branch new_branch1 new_branch2 ..." - This is a fast way to create many branches at onces. Does not change HEAD pointer.
+	- "oasys checkout -b new_branch" - You can only create one branch with this. However, HEAD is updated so it points to the new pointer.
 
 
 <DELETE/REMOVE A BRANCH> - A branch can be deleted by calling "oasys rm -b brach_name".
@@ -78,11 +78,8 @@ For more information on why to branch, refer to:
 
 
 <DIFFERENCE BETWEEN LOCAL AND REMOTE REPOSITORY> - Two important types of repos are:
-- Local - This is the repository on your computer containing all of the personal version control data.
-- Remote - This is a cloud based repository that allows data to be shared amonst different machines. The role of push and pull is to update the local and remote repositories so that they contain the same data.
+	- Local - This is the repository on your computer containing all of the personal version control data.
+	- Remote - This is a cloud based repository that allows data to be shared amongst different machines. The role of push and pull is to update the local and remote repositories so that they contain the same data.
 
 
 <COMMIT HASH> - The commit hash is a unique identifier for a commit object (note, emphasis on "unique"). It can be used to reference a specific commit.
-
-
-<SOME OTHER TOPIC> - Add more topics

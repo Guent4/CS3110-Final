@@ -20,12 +20,14 @@ let parse_cmd (cmd_str:string) : cmd =
 (* [parse_opt in_list] - Method goes through the in_list and finds the opts.
  * The opts start with "%-" or is just ".".  It stops looking for opts at the
  * first occurence of an item in in_list that isn't an opt.  If no opts are found,
- * then EMPTY is used as the opt.
+ * then EMPTY is used as the opt.  At the end, a check is made to see if a default
+ * opt was assigned to c in atlas.ml; if so, replace EMPTY with the default opt.
  * Parameters:
+ *    - c - the parsed cmd for the input
  *    - in_list - string list of input words after the cmd element has been removed
  * Returns: (a,b) pair where a is the list of the opts and b is the remainder of
  * in_list after the opt words were removed *)
-let parse_opt (in_list:string list) : opt list * string list =
+let parse_opt (c:cmd) (in_list:string list) : opt list * string list =
   let rec parse_opt_rec in_list acc =
     match in_list with
     | [] -> (
@@ -40,7 +42,12 @@ let parse_opt (in_list:string list) : opt list * string list =
       else (
         if (List.length acc = 0) then ([EMPTY], in_list)
         else (acc, in_list))) in
-  parse_opt_rec in_list []
+  match parse_opt_rec in_list [] with
+  | (o,args) ->(
+      let o' = if (o = [EMPTY] && M.mem (c,EMPTY) opt_default)
+          then [M.find (c,EMPTY) opt_default]
+        else o in
+        (o',args))
 
 (* [parse_arg c o in_list] - Using the in_list, figure out what are the arg(s) to
  * the input.  If the cmd is COMMIT and the fst of opt is MSG, then concatenate
@@ -83,8 +90,6 @@ let check_args (c:cmd) (o:opt list) (a:arg list) : cmd_expr option =
   match o with
   | [] -> failwith "No option given"
   | f::e -> (
-    let f = if (M.mem (c,f) arg_num_default) then M.find (c,f) arg_num_default
-      else f in
     if (M.mem (c,f) arg_num_expected) then
       let es = M.find (c,f) arg_num_expected in
       let es_str = get_string_num_opts es in
@@ -154,10 +159,10 @@ let interpret (input:string list) : cmd_expr option =
   | [] -> None
   | cmd_elmt::opt_list ->
     let c = parse_cmd cmd_elmt in
-    let (o,arg_list) = parse_opt opt_list in
+    let (o,arg_list) = parse_opt c opt_list in
     let args = parse_arg c o arg_list in
     let expr_option = check_cmd_expr c o args in
-    offer_help expr_option; expr_option
+    offer_help expr_option
 
 (* [read_interpret] - Calls read which gets user input and then performs interpret
  * on the input string list after the repository directory entry has been taken
@@ -183,46 +188,3 @@ let output (x:feedback) : unit =
   match x with
   | Success s -> Printf.printf "%s\n" s
   | Failure s -> Printf.printf "%s\n" s
-
-
-
-
-
-
-
-
-
-TEST_MODULE "binOpTests" = struct
-  let lex (s:string) : string list =
-    let whitespace_char_string = String.concat "+"
-      (List.map (String.make 1) [Char.chr 9; Char.chr 10; Char.chr 11;
-          Char.chr 12; Char.chr 13; Char.chr 32]) in
-    let whitespace = "[" ^ whitespace_char_string ^ "]+" in
-    Str.split (Str.regexp whitespace) s
-
-  TEST = interpret (lex "push") = Some (PUSH, [EMPTY], [])
-
-  TEST = interpret (lex "add") = None
-  TEST = interpret (lex "add .") = Some (ADD, [ALL], [])
-  TEST = interpret (lex "add file1.ml file2.txt file3") = Some (ADD, [EMPTY], ["file1.ml"; "file2.txt"; "file3"])
-  TEST = interpret (lex "add file1.ml file2.txt \"file3\"") = Some (ADD, [EMPTY], ["file1.ml"; "file2.txt"; "\"file3\""])
-
-  TEST = interpret (lex "commit -m") = None
-  TEST = interpret (lex "commit --message") = None
-  TEST = interpret (lex "commit --message asdf") = Some (COMMIT, [MSG], ["asdf"])
-  TEST = interpret (lex "commit --message \"hello world\"") = Some (COMMIT, [MSG], ["\"hello world\""])
-  TEST = interpret (lex "commit -a -m") = None
-  TEST = interpret (lex "commi -m") = None
-
-  TEST = interpret (lex "diff") = Some (DIFF, [EMPTY], [])
-  TEST = interpret (lex "diff --file file1.ml file2.ml") = Some (DIFF, [FILE], ["file1.ml"; "file2.ml"])
-  TEST = interpret (lex "diff -b branch1 branch2") = Some (DIFF, [BNCH], ["branch1"; "branch2"])
-  TEST = interpret (lex "diff file1.ml file2.ml") = None
-  TEST = interpret (lex "diff \"file1.ml\" \"file2.ml\"") = None
-
-  TEST = interpret (lex "rm branch1 branch2 branch3") = None
-  TEST = interpret (lex "rm -b branch1 branch2 branch3") = Some (RM, [BNCH], ["branch1"; "branch2"; "branch3"])
-  TEST = interpret (lex "rm --file f1 f2 f3") = Some (RM, [FILE], ["f1"; "f2"; "f3"])
-end
-
-let () = Pa_ounit_lib.Runtime.summarize()
