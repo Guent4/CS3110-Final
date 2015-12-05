@@ -1,21 +1,19 @@
 open Yojson.Basic.Util
 
-(* Commands that OASys can support *)
-type cmd = PUSH | PULL | ADD | COMMIT | BRANCH | CHECKOUT | MERGE | DIFF
-  | STATUS | CONFIG | HELP | CLONE | INIT | LOG | RESET | RM | QUIT
-  | INVALID_CMD of string
+(* All the commands that OASys can support; INVALID_CMD is for an input that is
+ * not a supported cmd. *)
+type cmd = PUSH | PULL | ADD | COMMIT | BRANCH | CHECKOUT | MERGE | STATUS
+  | CONFIG | HELP | INIT | LOG | RESET | RM | QUIT | INVALID_CMD of string
 
 type arg = string
 
-(* All of the possible options that will be supported (i.e "-a" in
- *  "git add -a")
- *)
-type opt = MSG | ALL | SETUPSTREAM | DELETE | REMOVE | RENAME | BNCH | FILE
-  | CONFIG_SET | HARD | MIXED | SOFT | CMD | EMPTY | INVALID_OPT of string
+(* All of the possible options that will be supported (i.e ALL for
+ * "git add -a").  INVALID_OPT is for unsupported opts*)
+type opt = MSG | ALL | DELETE | REMOVE | RENAME | BNCH | FILE | CONFIG_SET
+  | HARD | MIXED | SOFT | CMD | EMPTY | INVALID_OPT of string
 
-(* This is the type that the user input will be parsed into.  The actual commands
- *  described in the cmd_expr will be executed later in OASys
- *)
+(* This is the type that the user input will be parsed into in Camel.  The actual
+ * commands described by the cmd_expr will be executed in OASys *)
 type cmd_expr = cmd * opt list * arg list
 
 type file_path = string

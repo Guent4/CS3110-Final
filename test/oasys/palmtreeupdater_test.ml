@@ -3,12 +3,12 @@ open Palmtreeupdater
 
 let setup_tree () =
   let () = Fileio.remove_dir "./test_proj/.oasys/" in
-  let tree = {head=("", "", []); index=([],[]); work_dir=[]; commit_tree= CommitTree.add "master" [] (CommitTree.empty)} in
   let config = {repo_dir= "./test_proj/"; current_branch="master"; username=""; password=""; upstream=""} in
+  let tree = {head=("", "", []); index=([],[]); work_dir=[]; commit_tree= CommitTree.add "master" [] (CommitTree.empty)} in
   (tree,config)
 
 let init tree config =
-  let cmd = (INIT,[],[]) in
+  let cmd = (INIT,[EMPTY],[]) in
   let (tree',config',feedback) = update_tree cmd tree config in
   (tree',config',feedback)
 
