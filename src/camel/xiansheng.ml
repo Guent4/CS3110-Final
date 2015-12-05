@@ -11,7 +11,7 @@ open Atlas
  * Parameters:
  *    - s - the string being tested
  * Returns: true if s can be converted to an int using int_of_string; false otherwise*)
-let is_int (s:string) : boolean =
+let is_int (s:string) : bool =
   try ignore (int_of_string s); true
   with _ -> false
 

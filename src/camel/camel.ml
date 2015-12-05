@@ -142,36 +142,37 @@ let read () : string * (string list)  =
   | h::r::t -> (r,t)
   | _ -> exit 0
 
-(* [interpret repo_dir_input] - Takes the user input from read and parses it.
+(* [interpret input] - Takes the user input from read and parses it.
  * Parameters:
- *    - repo_dir_input - the result from read; (a,b) where a is the repo dir and
- *      b is the action given by the user (pre-parsing)\
- * Returns: (a,b) where a is the repo dir (no manipulations done on it) and b is
- * Some x if x is a cmd_expr that passed all of the checks in this file and None
- * if there is a check that failed (error message will be printed accordingly) *)
-let interpret (repo_dir_input:string * (string list)) : string * (cmd_expr option) =
-  let (repo_dir,cmd_list) = repo_dir_input in
-  match cmd_list with
-  | [] -> (repo_dir,None)
+ *    - input - the result from read; only contains the part with the action
+ *      commands
+ * Returns: Some x if x is a cmd_expr that passed all of the checks in this file
+ * and None if there is a check that failed (error message will be printed
+ * accordingly) *)
+let interpret (input:string list) : cmd_expr option =
+  match input with
+  | [] -> None
   | cmd_elmt::opt_list ->
     let c = parse_cmd cmd_elmt in
-    let (opts,arg_list) = parse_opt c opt_list in
-    let args = parse_arg c opts arg_list in
-    let expr_option = check_cmd_expr c opts args in
-    offer_help expr_option; (repo_dir,expr_option)
+    let (o,arg_list) = parse_opt opt_list in
+    let args = parse_arg c o arg_list in
+    let expr_option = check_cmd_expr c o args in
+    offer_help expr_option; expr_option
 
 (* [read_interpret] - Calls read which gets user input and then performs interpret
- * on the resut.  If resulting parsed cmd_expr option is None, then break exit;
- * if it is Some x where x is valid, then return the repo directory with x.
+ * on the input string list after the repository directory entry has been taken
+ * out.  If resulting parsed cmd_expr option is None, then break exit; if it is
+ * Some x where x is valid, then return the repo directory with x.
  * Paramters:
  *    - NA
  * Returns: (a,b) where a is the repo dir and b is a cmd_expr that passed all
  * checks performed in camel.ml *)
 let rec read_interpret () : string * cmd_expr =
-  match interpret (read ()) with
-  | (r,None) -> exit 0
-  | (r,Some (c,o,a)) -> (r,(c,o,a))
-  | _ -> failwith "other"
+  match read () with
+  | (repo_dir,rest) -> (
+    match interpret rest with
+    | None -> exit 0
+    | Some (c,o,a) -> (repo_dir,(c,o,a)))
 
 (* [output x] - Print the result of the execution of the command.
  * Parameters:
@@ -183,3 +184,45 @@ let output (x:feedback) : unit =
   | Success s -> Printf.printf "%s\n" s
   | Failure s -> Printf.printf "%s\n" s
 
+
+
+
+
+
+
+
+
+TEST_MODULE "binOpTests" = struct
+  let lex (s:string) : string list =
+    let whitespace_char_string = String.concat "+"
+      (List.map (String.make 1) [Char.chr 9; Char.chr 10; Char.chr 11;
+          Char.chr 12; Char.chr 13; Char.chr 32]) in
+    let whitespace = "[" ^ whitespace_char_string ^ "]+" in
+    Str.split (Str.regexp whitespace) s
+
+  TEST = interpret (lex "push") = Some (PUSH, [EMPTY], [])
+
+  TEST = interpret (lex "add") = None
+  TEST = interpret (lex "add .") = Some (ADD, [ALL], [])
+  TEST = interpret (lex "add file1.ml file2.txt file3") = Some (ADD, [EMPTY], ["file1.ml"; "file2.txt"; "file3"])
+  TEST = interpret (lex "add file1.ml file2.txt \"file3\"") = Some (ADD, [EMPTY], ["file1.ml"; "file2.txt"; "\"file3\""])
+
+  TEST = interpret (lex "commit -m") = None
+  TEST = interpret (lex "commit --message") = None
+  TEST = interpret (lex "commit --message asdf") = Some (COMMIT, [MSG], ["asdf"])
+  TEST = interpret (lex "commit --message \"hello world\"") = Some (COMMIT, [MSG], ["\"hello world\""])
+  TEST = interpret (lex "commit -a -m") = None
+  TEST = interpret (lex "commi -m") = None
+
+  TEST = interpret (lex "diff") = Some (DIFF, [EMPTY], [])
+  TEST = interpret (lex "diff --file file1.ml file2.ml") = Some (DIFF, [FILE], ["file1.ml"; "file2.ml"])
+  TEST = interpret (lex "diff -b branch1 branch2") = Some (DIFF, [BNCH], ["branch1"; "branch2"])
+  TEST = interpret (lex "diff file1.ml file2.ml") = None
+  TEST = interpret (lex "diff \"file1.ml\" \"file2.ml\"") = None
+
+  TEST = interpret (lex "rm branch1 branch2 branch3") = None
+  TEST = interpret (lex "rm -b branch1 branch2 branch3") = Some (RM, [BNCH], ["branch1"; "branch2"; "branch3"])
+  TEST = interpret (lex "rm --file f1 f2 f3") = Some (RM, [FILE], ["f1"; "f2"; "f3"])
+end
+
+let () = Pa_ounit_lib.Runtime.summarize()
