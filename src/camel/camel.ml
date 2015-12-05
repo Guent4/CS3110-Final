@@ -209,6 +209,6 @@ let rec read_interpret () : string * cmd_expr =
  * Returns: unit (method only used for its sideeffect) *)
 let output (x:feedback) : unit =
   match x with
-  | Success s -> print_formatted s
-  | Failure s -> print_formatted s
+  | Success s -> print_formatted (s^"\n")
+  | Failure s -> print_formatted (s^"\n")
 

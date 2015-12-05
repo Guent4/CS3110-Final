@@ -424,9 +424,9 @@ let status tree config repo_dir current_branch =
     if ( max (List.length added) (List.length removed) > 0 ) then
     (
       "Changes to be committed:\n" ^
-      (Listops.to_string (abbrev_files repo_dir (added |-| (added |-| committed) ) ) "\t" "\nadded:\t" "\n" ) ^
-      (Listops.to_string (abbrev_files repo_dir (added |-| committed) ) "\t" "\nnew file:\t" "\n" ) ^
-      (Listops.to_string (abbrev_files repo_dir removed) "\t" "\ndeleted:\t" "\n\n")
+      (Listops.to_string (abbrev_files repo_dir (added |-| (added |-| committed) ) ) "<green>\t" "\nadded:\t" "</green>\n" ) ^
+      (Listops.to_string (abbrev_files repo_dir (added |-| committed) ) "<green>\t" "\nnew file:\t" "</green>\n" ) ^
+      (Listops.to_string (abbrev_files repo_dir removed) "<red>\t" "\ndeleted:\t" "</red>\n\n")
     )
     else
     ("Nothing to commit\n" )
@@ -437,7 +437,7 @@ let status tree config repo_dir current_branch =
     if (List.length (untracked_files) > 0) then
     (
       let untracked_files = abbrev_files repo_dir untracked_files in
-      "Untracked files:\n" ^ (Listops.to_string (untracked_files) "\t" "\n\t" "\n")
+      "Untracked files:\n" ^ (Listops.to_string (untracked_files) "<red>\t" "\n\t" "</red>\n")
     )
     else
     ("Working directory clean" )
