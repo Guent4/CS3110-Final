@@ -24,7 +24,7 @@ let colors = [
 
 (* List of all of the accepted commands *)
 let cmd_str_list = ["init";"log";"status";"add";"commit";"branch";"checkout";
-  "reset";"rm";"diff";"merge";"config";"push";"pull";"clone";"help";"quit"]
+  "reset";"rm";"merge";"config";"push";"pull";"help";"quit"]
 
 (* [translate_cmd cmd_string] - Converts string form of a command to the cmd form.
  *      If string does not correspond to a cmd, then a INVALID_CMD is returned.
@@ -42,12 +42,10 @@ let translate_cmd (cmd_string:string) : cmd =
   | "checkout"      -> CHECKOUT
   | "reset"         -> RESET
   | "rm"            -> RM
-  | "diff"          -> DIFF
   | "merge"         -> MERGE
   | "config"        -> CONFIG
   | "push"          -> PUSH
   | "pull"          -> PULL
-  | "clone"         -> CLONE
   | "help"          -> HELP
   | "quit"          -> ignore(exit 0); QUIT
   | s               -> INVALID_CMD s
@@ -67,18 +65,16 @@ let detranslate_cmd (cmd:cmd) : string =
   | CHECKOUT        -> "checkout"
   | RESET           -> "reset"
   | RM              -> "rm"
-  | DIFF            -> "diff"
   | MERGE           -> "merge"
   | CONFIG          -> "config"
   | PUSH            -> "push"
   | PULL            -> "pull"
-  | CLONE           -> "clone"
   | HELP            -> "help"
   | QUIT            -> "quit"
   | INVALID_CMD s   -> s
 
 (* List of all of the accepted opt inputs *)
-let opt_str_list = ["--message";"--all";"--set-upstream";"--delete";"--remove";
+let opt_str_list = ["--message";"--all";"--set";"--delete";"--remove";
   "--rename";"--branch";"--file";"--hard";"--mixed";"--soft";"--add"]
 
 (* [translate_opt opt_string] - Converts string form of a opt to the opt form.
@@ -90,7 +86,6 @@ let translate_opt (opt_string:string) : opt =
   match opt_string with
   | "-m" | "--message"          -> MSG
   | "-a" | "--all" | "."        -> ALL
-  | "-u" | "--set-upstream"     -> SETUPSTREAM
   | "-d" | "--delete"           -> DELETE
   | "-rm" | "--remove"          -> REMOVE
   | "-rn" | "--rename"          -> RENAME
@@ -112,7 +107,6 @@ let detranslate_opt (opt:opt) : string =
   match opt with
   | MSG             -> "-m or --message"
   | ALL             -> ". or -a or --all"
-  | SETUPSTREAM     -> "-u or --set-upstream"
   | DELETE          -> "-d or --delete"
   | REMOVE          -> "-rm or --remove"
   | RENAME          -> "-rn or --rename"
@@ -147,7 +141,6 @@ let arg_num_expected =
       ((RESET,HARD),[1]);     ((RESET,SOFT),[1]); ((RESET,MIXED),[1]);
       ((RM,BNCH),[-1]);       ((RM,FILE),[-1]);
       ((CHECKOUT,EMPTY),[1]);
-      ((DIFF,EMPTY),[0]);     ((DIFF,FILE),[2]);  ((DIFF,BNCH),[0;2]);
       ((PUSH,EMPTY),[0]);
       ((PULL,EMPTY),[0]);
       ((HELP,EMPTY),[-2]);    ((HELP,CMD),[1]);
@@ -171,12 +164,10 @@ let opt_default =
       ((CHECKOUT,EMPTY),EMPTY);
       ((RESET,EMPTY),FILE);
       ((RM,EMPTY),FILE);
-      ((DIFF,EMPTY),EMPTY);
       ((MERGE,EMPTY),EMPTY);
       ((CONFIG,CONFIG_SET),EMPTY);
       ((PUSH,EMPTY),EMPTY);
       ((PULL,EMPTY),EMPTY);
-      ((CLONE,EMPTY),EMPTY);
       ((HELP,EMPTY),EMPTY)
     ] in
   List.fold_left (fun acc x -> match x with | (x,y) -> M.add x y acc) M.empty lst
