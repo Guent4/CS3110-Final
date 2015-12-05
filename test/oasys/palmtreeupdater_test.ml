@@ -17,7 +17,7 @@ let init tree config =
   let (tree',config',feedback) = update_tree cmd tree config in
   (tree',config',feedback)
 
-let commit tree config msg = 
+let commit tree config msg =
   let cmd = (COMMIT,[],[msg]) in
   let (tree',config',feedback) = update_tree cmd tree config in
   (tree',config',feedback) *)

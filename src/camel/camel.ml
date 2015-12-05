@@ -164,6 +164,25 @@ let interpret (input:string list) : cmd_expr option =
     let expr_option = check_cmd_expr c o args in
     offer_help expr_option
 
+(* [print_formatted s] - Takes a string and prints segments in colors as specified
+ * by a special style where the color is in a <> tag and ends in <> tag (note:
+ * the text in the closing tag doesn't really matter).  An example of of the syntax:
+ * <red>text in color</red>.  Additionally if the text inside the starting tag is
+ * not a supported color, then the text (without the tag) will be printed.
+ * Paramters:
+ *    - s - the string to be printed; may or may not contain colors
+ * Returns: unit *)
+let print_formatted (s:string) : unit =
+  let lst = Str.split (Str.regexp "<\\|>") s in
+  let rec print_formatted_rec = function
+    | a::b::c::d -> (
+      if (List.mem_assoc a colors)
+        then (print_string ((List.assoc a colors)^b); print_formatted_rec d)
+      else (print_string ("\027[37m"^a); print_formatted_rec (b::c::d)))
+    | a::b -> print_string ("\027[37m"^a); print_formatted_rec b
+    | [] -> () in
+  print_formatted_rec lst
+
 (* [read_interpret] - Calls read which gets user input and then performs interpret
  * on the input string list after the repository directory entry has been taken
  * out.  If resulting parsed cmd_expr option is None, then break exit; if it is
@@ -186,5 +205,6 @@ let rec read_interpret () : string * cmd_expr =
  * Returns: unit (method only used for its sideeffect) *)
 let output (x:feedback) : unit =
   match x with
-  | Success s -> Printf.printf "%s\n" s
-  | Failure s -> Printf.printf "%s\n" s
+  | Success s -> print_formatted s
+  | Failure s -> print_formatted s
+
