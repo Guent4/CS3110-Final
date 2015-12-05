@@ -40,12 +40,12 @@ TEST_MODULE "init tests" = struct
   (
     config = config'
   )
-  TEST_UNIT "test feedback" = assert
-  (
+  TEST "test feedback" =(
+    let x = "Initialized empty OASYS repository in " ^ config'.repo_dir ^ ".oasys/" in
     match feedback with
-    | Success "" -> true
-    | _ -> false
-  )
+    | Success y when y = x -> true
+    | _ -> false)
+
   let (tree'',config'',feedback) = init tree' config'
   TEST_UNIT "test .oasys" = assert
   (
