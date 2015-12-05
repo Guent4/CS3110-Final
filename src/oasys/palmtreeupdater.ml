@@ -78,7 +78,13 @@ let rec find_commit hash = function
   )
 
 let init tree config repo_dir current_branch =
+(*   print_endline repo_dir;
+  print_endline "START";
+  (List.iter print_endline tree.work_dir); *)
   let work_dir = get_work_dir repo_dir in
+(*   print_endline "MID";
+  (List.iter print_endline work_dir);
+  print_endline "END"; *)
   match Fileio.file_exists (repo_dir ^ oasys_dir) with
   | true ->
     let tree = {tree with work_dir=work_dir} in
