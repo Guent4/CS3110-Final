@@ -14,6 +14,14 @@ let doc_loc = "./OASys_Doc.txt"
  * directory  *)
 let help_loc = "./OASys_Help.txt"
 
+(* Codes for printing in color *)
+let colors = [
+  ("white", "\027[37m");
+  ("red","\027[31m");
+  ("green","\027[32m");
+  ("blue","\027[34m");
+  ("cyan","\027[36m")]
+
 (* List of all of the accepted commands *)
 let cmd_str_list = ["init";"log";"status";"add";"commit";"branch";"checkout";
   "reset";"rm";"diff";"merge";"config";"push";"pull";"clone";"help";"quit"]
