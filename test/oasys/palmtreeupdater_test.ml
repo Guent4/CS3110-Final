@@ -4,7 +4,7 @@ open Palmtreeupdater
 let setup_tree () =
   let () = Fileio.remove_dir "./test_proj/.oasys/" in
   let tree = CommitTree.empty in
-  let tree = CommitTree.add "master" [] tree in
+(*   let tree = CommitTree.add "master" [] tree in *)
   let config = {repo_dir= "./test_proj/"; current_branch="master"; username=""; password=""; upstream=""} in
   (tree,config)
 
@@ -13,15 +13,15 @@ let init tree config =
   let (tree',config',feedback) = update_tree cmd tree config in
   (tree',config',feedback)
 
-let add tree config filename =
+(* let add tree config filename =
   let cmd = (ADD,[],[filename]) in
   let (tree',config',feedback) = update_tree cmd tree config in
   (tree',config',feedback)
 
-let commit tree config msg = 
+let commit tree config msg =
   let cmd = (COMMIT,[],[msg]) in
   let (tree',config',feedback) = update_tree cmd tree config in
-  (tree',config',feedback)
+  (tree',config',feedback) *)
 
 TEST_MODULE "init tests" = struct
   let (tree,config) = setup_tree ()
