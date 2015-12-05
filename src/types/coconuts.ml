@@ -3,7 +3,7 @@ open Yojson.Basic.Util
 (* All the commands that OASys can support; INVALID_CMD is for an input that is
  * not a supported cmd. *)
 type cmd = PUSH | PULL | ADD | COMMIT | BRANCH | CHECKOUT | MERGE | STATUS
-  | CONFIG | HELP | INIT | LOG | RESET | RM | QUIT | INVALID_CMD of string
+  | CONFIG | HELP | INIT | LOG | RESET | RM | INVALID_CMD of string
 
 type arg = string
 
