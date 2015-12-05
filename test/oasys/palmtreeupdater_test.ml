@@ -3,7 +3,8 @@ open Palmtreeupdater
 
 let setup_tree () =
   let () = Fileio.remove_dir "./test_proj/.oasys/" in
-  let config = {repo_dir= "./test_proj/"; current_branch="master"; username=""; password=""; upstream=""} in
+  let dir = (Sys.getcwd()) ^ "/test_proj/" in
+  let config = {repo_dir=dir; current_branch="master"; username=""; password=""; upstream=""} in
   let tree = {head=("", "", []); index=([],[]); work_dir=[]; commit_tree= CommitTree.add "master" [] (CommitTree.empty)} in
   (tree,config)
 
@@ -64,6 +65,7 @@ TEST_MODULE "init tests" = struct
     assert(tree''.head = tree'.head);
     assert(tree''.index = tree'.index);
     assert(tree''.commit_tree = tree'.commit_tree)
+    assert(tree''.work_dir = tree'.work_dir)
 
   TEST_UNIT "test config (x2)"  = assert
   (
@@ -128,11 +130,14 @@ TEST_MODULE "commit tests" = struct
   )
 end *)
 
-TEST_MODULE "rm tests" = struct
+(* TEST_MODULE "rm tests" = struct
   let (tree,config) = setup_tree ()
   let (tree',config',feedback) = init tree config
+  TEST_UNIT "rm EMPTY" =
+    let cmd = (RM,[EMPTY],[]) in
+
 
 end
 
-
+ *)
 let () = Pa_ounit_lib.Runtime.summarize ()
