@@ -175,6 +175,10 @@ let interpret (input:string list) : cmd_expr option =
 let print_formatted (s:string) : unit =
   let lst = Str.split (Str.regexp "<\\|>") s in
   let rec print_formatted_rec = function
+    | a::b::c::[] -> (
+      if (List.mem_assoc a colors)
+        then (print_string ((List.assoc a colors)^b); print_string "\027[37m")
+      else (print_string ("\027[37m"^a); print_formatted_rec (b::c::[])))
     | a::b::c::d -> (
       if (List.mem_assoc a colors)
         then (print_string ((List.assoc a colors)^b); print_formatted_rec d)
