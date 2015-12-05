@@ -43,7 +43,7 @@ TEST_MODULE "init tests" = struct
   TEST_UNIT "test feedback" = assert
   (
     match feedback with
-    | Success "a new oasys repository has been initialized" -> true
+    | Success "" -> true
     | _ -> false
   )
   let (tree'',config'',feedback) = init tree' config'
