@@ -29,13 +29,14 @@ TEST_MODULE "init tests" = struct
   (
     Fileio.file_exists "./test_proj/.oasys/"
   )
-  (* TEST_UNIT "test tree"  = assert
+  TEST_UNIT "test tree"  = assert
   (
-    let master = CommitTree.find "master" tree' in
+    let master = CommitTree.find "master" tree'.commit_tree in
+    let x = [tree'.head] in
     match master with
-    | Changes([],[],[]) :: Commit (_,"initial commit") :: [] -> true
-    | _ -> false
-  ) *)
+    | y when y = x -> true
+    | _ -> (print_endline "hello"); false
+  )
   TEST_UNIT "test config"  = assert
   (
     config = config'
@@ -45,25 +46,30 @@ TEST_MODULE "init tests" = struct
     match feedback with
     | Success y when y = x -> true
     | _ -> false)
-  let (tree'',config'',feedback) = init tree' config'
+  let (tree'',config'',feedback') = init tree' config'
+
+  TEST_UNIT "test feedback (x2)" = assert
+  (
+    match feedback' with
+    | Failure "an oasys repository already exists in this directory" -> true
+    | _ -> false
+  )
+
   TEST_UNIT "test .oasys" = assert
   (
     Fileio.file_exists "./test_proj/.oasys/"
   )
-  TEST_UNIT "test tree (x2)"  = assert
-  (
-    tree'' = tree'
-  )
+
+  TEST_UNIT "test tree (x2)"  =
+    assert(tree''.head = tree'.head);
+    assert(tree''.index = tree'.index);
+    assert(tree''.commit_tree = tree'.commit_tree)
+
   TEST_UNIT "test config (x2)"  = assert
   (
     config'' = config'
   )
-  TEST_UNIT "test feedback (x2)" = assert
-  (
-    match feedback with
-    | Failure "an oasys repository already exists in this directory" -> true
-    | _ -> false
-  )
+
 end
 
 (* TEST_MODULE "add tests" = struct
@@ -122,6 +128,11 @@ TEST_MODULE "commit tests" = struct
   )
 end *)
 
+TEST_MODULE "rm tests" = struct
+  let (tree,config) = setup_tree ()
+  let (tree',config',feedback) = init tree config
+
+end
 
 
 let () = Pa_ounit_lib.Runtime.summarize ()
