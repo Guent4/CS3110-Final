@@ -10,9 +10,6 @@ printf "\n${L_BLUE}Starting tests...${NC}\n"
 printf "${GREEN}Testing: ${CYAN}camel${NC}\n"
 cs3110 compile test/camel/camel_test -I src/camel/ -I src/types/ -I src/util/
 cs3110 test test/camel/camel_test
-printf "${GREEN}Starting server for: ${CYAN}palmtreeupdater${NC}\n"
-cs3110 compile test/oasys/server -I src/util/ -I src/types/ -I src/oasys/ -I src/camelrider/
-cs3110 run test/oasys/server
 
 # printf "${GREEN}Testing: ${CYAN}xiansheng${NC}\n"
 # cs3110 compile test/camel/xiansheng_test -I src/types/ -I src/camel/ -I src/util/
