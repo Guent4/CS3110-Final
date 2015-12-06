@@ -258,7 +258,7 @@ end
 
 TEST_MODULE "checkout file" = struct
   (* let _ = FileUtil.rm ["add1.txt";"add2.txt"] *)
-  let _ = FileUtil.touch ~create:true "./test_proj/add1.txt"
+  (* let _ = FileUtil.touch ~create:true "./test_proj/add1.txt" *)
   let (tree,config) = setup_tree ()
   let (tree',config',feedback) = init tree config
   let () = Out_channel.write_all "./test_proj/add1.txt" ~data:"Your text"
@@ -269,7 +269,7 @@ TEST_MODULE "checkout file" = struct
     let (_,_,f) = update_tree (CHECKOUT,[FILE],["add1.txt"]) tree''' config''' in
     assert(match f with |Success _ -> true
                         |Failure _ -> false);
-    assert(In_channel.read_all "add1.txt" = "Your text")
+    assert(In_channel.read_all "./test_proj/add1.txt" = "Your text")
 end
 
 

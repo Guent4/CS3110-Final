@@ -3,9 +3,9 @@ open Xiansheng
 open Atlas
 
 (* This module is responsible for reading in the input from the Terminal and then
- * parse the input into a cmd_expr that can be used by the rest of the program.
+ * parsing the input into a cmd_expr that can be used by the rest of the program.
  * Camel is also responsible for determining if an input is not valid (cannot be
- * be interpretted into a cmd_expr); if invalid, the error is directly printed
+ * be interpreted into a cmd_expr); if invalid, the error is directly printed
  * and None is passed on, effectively stopping the program.  Camel will call
  * xiansheng in order to provide help to the user in the form of suggestions and
  * search results. *)
