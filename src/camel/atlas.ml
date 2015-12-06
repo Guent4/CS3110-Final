@@ -166,7 +166,7 @@ let opt_default =
       ((RESET,EMPTY),FILE);
       ((RM,EMPTY),FILE);
       ((MERGE,EMPTY),EMPTY);
-      ((CONFIG,CONFIG_SET),EMPTY);
+      ((CONFIG,EMPTY),EMPTY);
       ((PUSH,EMPTY),EMPTY);
       ((PULL,EMPTY),EMPTY);
       ((HELP,EMPTY),EMPTY)
