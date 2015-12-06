@@ -24,7 +24,7 @@ let colors = [
 
 (* List of all of the accepted commands *)
 let cmd_str_list = ["init";"log";"status";"add";"commit";"branch";"checkout";
-  "reset";"rm";"merge";"config";"push";"pull";"help";"quit"]
+  "reset";"rm";"merge";"config";"push";"pull";"help"]
 
 (* [translate_cmd cmd_string] - Converts string form of a command to the cmd form.
  *      If string does not correspond to a cmd, then a INVALID_CMD is returned.
@@ -47,7 +47,6 @@ let translate_cmd (cmd_string:string) : cmd =
   | "push"          -> PUSH
   | "pull"          -> PULL
   | "help"          -> HELP
-  | "quit"          -> ignore(exit 0); QUIT
   | s               -> INVALID_CMD s
 
 (* [detranslate_cmd cmd] - Converts a cmd into the string version of it
@@ -70,7 +69,6 @@ let detranslate_cmd (cmd:cmd) : string =
   | PUSH            -> "push"
   | PULL            -> "pull"
   | HELP            -> "help"
-  | QUIT            -> "quit"
   | INVALID_CMD s   -> s
 
 (* List of all of the accepted opt inputs *)
@@ -140,7 +138,7 @@ let arg_num_expected =
       ((RESET,FILE),[-1]);    ((RESET,BNCH),[1]);
       ((RESET,HARD),[1]);     ((RESET,SOFT),[1]); ((RESET,MIXED),[1]);
       ((RM,BNCH),[-1]);       ((RM,FILE),[-1]);
-      ((CHECKOUT,EMPTY),[1]);
+      ((CHECKOUT,EMPTY),[1]); ((CHECKOUT,FILE),[-1]);
       ((PUSH,EMPTY),[0]);
       ((PULL,EMPTY),[0]);
       ((HELP,EMPTY),[-2]);    ((HELP,CMD),[1]);

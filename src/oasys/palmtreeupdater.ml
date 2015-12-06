@@ -28,7 +28,9 @@ let to_string_branch branch =
 
 let to_string_branches tree current_branch =
   CommitTree.fold
-  (fun k _ a -> a ^ if (k = current_branch) then "* "^k^"\n" else " "^k^"\n")
+  (fun k _ a -> a ^
+      if (k = current_branch) then "<green>* "^k^"</green>\n"
+      else "  "^k^"\n")
   tree ""
 
 let get_config config =
@@ -78,13 +80,7 @@ let rec find_commit hash = function
   )
 
 let init tree config repo_dir current_branch =
-(*   print_endline repo_dir;
-  print_endline "START";
-  (List.iter print_endline tree.work_dir); *)
   let work_dir = get_work_dir repo_dir in
-(*   print_endline "MID";
-  (List.iter print_endline work_dir);
-  print_endline "END"; *)
   match Fileio.file_exists (repo_dir ^ oasys_dir) with
   | true ->
     let tree = {tree with work_dir=work_dir} in
@@ -200,6 +196,24 @@ let rm_branch tree config repo_dir current_branch branch_name =
 
 let reset_file tree config repo_dir current_branch file_name =
   let work_dir = get_work_dir repo_dir in
+  match List.mem file_name work_dir with
+  | false ->
+    let tree = {tree with work_dir=work_dir} in
+    (tree, config, Failure (Feedback.cannot_find file_name))
+  | true ->
+    let (added,removed) = tree.index in
+    let added = added |-| [file_name] in
+    let removed = removed |-| [file_name] in
+    let tree = {
+      head=tree.head;
+      index=(added,removed);
+      work_dir=work_dir;
+      commit_tree=tree.commit_tree
+    } in
+    (tree, config, Success (Feedback.file_reset file_name))
+
+let checkout_file tree config repo_dir current_branch file_name =
+  let work_dir = get_work_dir repo_dir in
   let (id,_,committed) = tree.head in
   match List.mem file_name work_dir with
   | false ->
@@ -209,7 +223,7 @@ let reset_file tree config repo_dir current_branch file_name =
     (match List.mem file_name committed with
     | false ->
       let tree = {tree with work_dir=work_dir} in
-      (tree, config, Failure ("ambiguous argument \'"^file_name^"\': unknown revision or path not in the working tree."))
+      (tree, config, Failure (Feedback.unknown_revision_path file_name))
     | true ->
       let (added,removed) = tree.index in
       let added = added |-| [file_name] in
@@ -223,7 +237,7 @@ let reset_file tree config repo_dir current_branch file_name =
         work_dir=work_dir;
         commit_tree=tree.commit_tree
       } in
-      (tree, config, Success (Feedback.file_reset file_name) ))
+      (tree, config, Success (Feedback.file_checkout file_name) ))
 
 let commit tree config repo_dir current_branch msg =
   let work_dir = get_work_dir repo_dir in
@@ -328,6 +342,8 @@ let checkout tree config repo_dir current_branch branch_name =
     )
 
 let file_batch_op op tree config repo_dir current_branch files =
+  let work_dir = get_work_dir repo_dir in
+  let tree = {tree with work_dir=work_dir} in
   let files' =
     List.fold_left
     (fun a x -> a |+| (get_files (repo_dir ^ "\\(" ^ x ^ "\\)") tree.work_dir) )
@@ -336,7 +352,7 @@ let file_batch_op op tree config repo_dir current_branch files =
   in
   match files' with
   | [] ->
-  let path_spec = Listops.to_string files "" " " "" in
+  let path_spec = Listops.to_string files "" "" "" in
   (tree,config,Failure (Feedback.cannot_find path_spec))
   | files ->
   let f t c = op t c repo_dir current_branch in
@@ -428,9 +444,9 @@ let status tree config repo_dir current_branch =
     if ( max (List.length added) (List.length removed) > 0 ) then
     (
       "Changes to be committed:\n" ^
-      (Listops.to_string (abbrev_files repo_dir (added |-| (added |-| committed) ) ) "\t" "\nadded:\t" "\n" ) ^
-      (Listops.to_string (abbrev_files repo_dir (added |-| committed) ) "\t" "\nnew file:\t" "\n" ) ^
-      (Listops.to_string (abbrev_files repo_dir removed) "\t" "\ndeleted:\t" "\n\n")
+      (Listops.to_string (abbrev_files repo_dir (added |-| (added |-| committed) ) ) "<green>\t" "\nadded:\t" "</green>\n" ) ^
+      (Listops.to_string (abbrev_files repo_dir (added |-| committed) ) "<green>\t" "\nnew file:\t" "</green>\n" ) ^
+      (Listops.to_string (abbrev_files repo_dir removed) "<red>\t" "\ndeleted:\t" "</red>\n\n")
     )
     else
     ("Nothing to commit\n" )
@@ -441,7 +457,7 @@ let status tree config repo_dir current_branch =
     if (List.length (untracked_files) > 0) then
     (
       let untracked_files = abbrev_files repo_dir untracked_files in
-      "Untracked files:\n" ^ (Listops.to_string (untracked_files) "\t" "\n\t" "\n")
+      "Untracked files:\n" ^ (Listops.to_string (untracked_files) "<red>\t" "\n\t" "</red>\n")
     )
     else
     ("Working directory clean" )
@@ -701,14 +717,15 @@ let pull tree config repo_dir current_branch =
 
 let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config):palm_tree * config * feedback =
   let (repo_dir, current_branch) = get_config config in
+  let work_dir = get_work_dir repo_dir in
+  let tree = {tree with work_dir=work_dir} in
   match cmd with
   | (INIT,[EMPTY],[]) -> init tree config repo_dir current_branch
   | (ADD,[EMPTY],files) -> file_batch_op add tree config repo_dir current_branch files
-  | (ADD,[ALL],[]) -> file_batch_op add tree config repo_dir current_branch tree.work_dir
+  | (ADD,[ALL],[]) -> file_batch_op add tree config repo_dir current_branch (abbrev_files repo_dir tree.work_dir)
   | (RM,[EMPTY],files) -> file_batch_op rm_file tree config repo_dir current_branch files
   | (RM,[FILE],files) -> file_batch_op rm_file tree config repo_dir current_branch files
   | (RM,[BNCH],[branch_name]) -> rm_branch tree config repo_dir current_branch branch_name
-  | (RESET,[EMPTY],files) -> file_batch_op reset_file tree config repo_dir current_branch files
   | (RESET,[FILE],files) -> file_batch_op reset_file tree config repo_dir current_branch files
   | (RESET,[BNCH],[hash]) -> reset_branch_mixed tree config repo_dir current_branch hash
   | (RESET,[HARD],[hash]) -> reset_branch_hard tree config repo_dir current_branch hash
@@ -716,6 +733,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config):palm_tree * conf
   | (RESET,[SOFT],[hash]) -> reset_branch_soft tree config repo_dir current_branch hash
   | (BRANCH,[EMPTY],[]) -> get_branches tree config repo_dir current_branch
   | (BRANCH,[EMPTY],[branch_name]) -> branch tree config repo_dir current_branch branch_name
+  | (CHECKOUT,[FILE],files) -> file_batch_op checkout_file tree config repo_dir current_branch files
   | (CHECKOUT,[EMPTY],[branch_name]) -> checkout tree config repo_dir current_branch branch_name
   | (COMMIT,[MSG],[message]) -> commit tree config repo_dir current_branch message
   | (STATUS,[EMPTY],[]) -> status tree config repo_dir current_branch
