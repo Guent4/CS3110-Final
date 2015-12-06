@@ -91,7 +91,7 @@ let search_for_topic (doc:string) (inputs:arg list) : string list =
 let help_empty (a_s:arg list) : unit =
   let doc = Fileio.read_str help_loc in
   let topics = search_for_topic doc a_s in
-  if (List.length topics = 0) then print_error 2
+  if (List.length topics = 0) then print_error 12
   else (
     print_endline "These are the search result. Please enter the number corresponding to interest:\n\t0: Quit";
     ignore (List.fold_left (fun a x -> print_endline ("\t"^(string_of_int a)^": "^x); a+1) 1 topics);
