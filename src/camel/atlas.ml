@@ -138,7 +138,7 @@ let arg_num_expected =
       ((RESET,FILE),[-1]);    ((RESET,BNCH),[1]);
       ((RESET,HARD),[1]);     ((RESET,SOFT),[1]); ((RESET,MIXED),[1]);
       ((RM,BNCH),[-1]);       ((RM,FILE),[-1]);
-      ((CHECKOUT,EMPTY),[1]);
+      ((CHECKOUT,EMPTY),[1]); ((CHECKOUT,FILE),[-1]);
       ((PUSH,EMPTY),[0]);
       ((PULL,EMPTY),[0]);
       ((HELP,EMPTY),[-2]);    ((HELP,CMD),[1]);

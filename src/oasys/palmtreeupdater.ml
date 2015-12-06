@@ -202,6 +202,24 @@ let rm_branch tree config repo_dir current_branch branch_name =
 
 let reset_file tree config repo_dir current_branch file_name =
   let work_dir = get_work_dir repo_dir in
+  match List.mem file_name work_dir with
+  | false ->
+    let tree = {tree with work_dir=work_dir} in
+    (tree, config, Failure (Feedback.cannot_find file_name))
+  | true ->
+    let (added,removed) = tree.index in
+    let added = added |-| [file_name] in
+    let removed = removed |-| [file_name] in
+    let tree = {
+      head=tree.head;
+      index=(added,removed);
+      work_dir=work_dir;
+      commit_tree=tree.commit_tree
+    } in
+    (tree, config, Success (Feedback.file_reset file_name))
+
+let checkout_file tree config repo_dir current_branch file_name =
+  let work_dir = get_work_dir repo_dir in
   let (id,_,committed) = tree.head in
   match List.mem file_name work_dir with
   | false ->
@@ -211,7 +229,7 @@ let reset_file tree config repo_dir current_branch file_name =
     (match List.mem file_name committed with
     | false ->
       let tree = {tree with work_dir=work_dir} in
-      (tree, config, Failure ("ambiguous argument \'"^file_name^"\': unknown revision or path not in the working tree."))
+      (tree, config, Failure (Feedback.unknown_revision_path file_name))
     | true ->
       let (added,removed) = tree.index in
       let added = added |-| [file_name] in
@@ -225,7 +243,7 @@ let reset_file tree config repo_dir current_branch file_name =
         work_dir=work_dir;
         commit_tree=tree.commit_tree
       } in
-      (tree, config, Success (Feedback.file_reset file_name) ))
+      (tree, config, Success (Feedback.file_checkout file_name) ))
 
 let commit tree config repo_dir current_branch msg =
   let work_dir = get_work_dir repo_dir in
@@ -330,6 +348,8 @@ let checkout tree config repo_dir current_branch branch_name =
     )
 
 let file_batch_op op tree config repo_dir current_branch files =
+  let work_dir = get_work_dir repo_dir in
+  let tree = {tree with work_dir=work_dir} in
   let files' =
     List.fold_left
     (fun a x -> a |+| (get_files (repo_dir ^ "\\(" ^ x ^ "\\)") tree.work_dir) )
@@ -718,6 +738,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config):palm_tree * conf
   | (RESET,[SOFT],[hash]) -> reset_branch_soft tree config repo_dir current_branch hash
   | (BRANCH,[EMPTY],[]) -> get_branches tree config repo_dir current_branch
   | (BRANCH,[EMPTY],[branch_name]) -> branch tree config repo_dir current_branch branch_name
+  | (CHECKOUT,[FILE],files) -> file_batch_op checkout_file tree config repo_dir current_branch files
   | (CHECKOUT,[EMPTY],[branch_name]) -> checkout tree config repo_dir current_branch branch_name
   | (COMMIT,[MSG],[message]) -> commit tree config repo_dir current_branch message
   | (STATUS,[EMPTY],[]) -> status tree config repo_dir current_branch
