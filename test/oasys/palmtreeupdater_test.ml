@@ -195,7 +195,8 @@ TEST_MODULE "checkout file" = struct
   let (tree''',config''',feedback'') = update_tree (COMMIT,[MSG],["add1.txt"]) tree'' config''
   let () = Out_channel.write_all "add1.txt" ~data:"Your text123"
   TEST_UNIT "checkout file" =
-    let (_,_,f) = update_tree (CHECKOUT,[FILE],["add1.txt"]) tree''' config''' in
+    (* let (_,_,_) = update_tree (CHECKOUT,[FILE],["add1.txt"]) tree''' config''' in *)
+    let (_,_,f) = update_tree (ADD,[EMPTY],["add1.txt"]) tree''' config''' in
     (match f with |Success f -> print_endline f
                   |Failure f -> print_endline f);
     assert(In_channel.read_all "add1.txt" = "Your text")
