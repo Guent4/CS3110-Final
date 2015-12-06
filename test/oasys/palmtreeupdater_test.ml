@@ -185,8 +185,25 @@ TEST_MODULE "reset tests" = struct
     )
 end
 
+
+TEST_MODULE "checkout file" = struct
+  FileUtil.rm ["add1.txt";"add2.txt"]
+  let (tree,config) = setup_tree ()
+  let (tree',config',feedback) = init tree config
+  let () = Out_channel.write_all "add1.txt" ~data:"Your text"
+  let (tree'',config'',feedback') = update_tree (ADD,[EMPTY],["add1.txt"]) tree' config'
+  let (tree''',config''',feedback'') = update_tree (COMMIT,[MSG],["add1.txt"]) tree'' config''
+  let () = Out_channel.write_all "add1.txt" ~data:"Your text123"
+  TEST_UNIT "checkout file" =
+    let (_,_,f) = update_tree (CHECKOUT,[FILE],["add1.txt"]) tree''' config''' in
+    (match f with |Success f -> print_endline f
+                  |Failure f -> print_endline f);
+    assert(In_channel.read_all "add1.txt" = "Your text")
+end
+
+
 TEST_MODULE "branch + checkout tests" = struct
-FileUtil.rm ["add1.txt";"add2.txt"]
+  FileUtil.rm ["add1.txt";"add2.txt"]
   let (tree,config) = setup_tree ()
   let (tree',config',feedback) = init tree config
   let (id,msg,committed) = tree'.head
@@ -205,7 +222,7 @@ FileUtil.rm ["add1.txt";"add2.txt"]
     | Success _ -> true
     | Failure _ -> false
     )
-  let () = Out_channel.write_all "add1.txt" ~data:"Your text2"
+  let () = Out_channel.write_all "add2.txt" ~data:"Your text2"
   let (tree5,config5,feedback4) = update_tree (ADD,[EMPTY],["add2.txt"]) tree4 config4
   let (tree6,config6,feedback5) = update_tree (COMMIT,[MSG],["add2.txt"]) tree5 config5
   let (tree7,config7,feedback6) = update_tree (CHECKOUT,[EMPTY],["hello"]) tree6 config6
@@ -217,6 +234,10 @@ FileUtil.rm ["add1.txt";"add2.txt"]
     | Success _ -> true
     | Failure _ -> false
     )
+(*   let () = Out_channel.write_all "add1.txt" ~data:"Your text2"
+  let (tree8,config8,feedback7) = update_tree (CHECKOUT,[FILE],["add1.txt"]) tree7 config7
+  TEST_UNIT "checkout file" =
+    assert(In_channel.read_all "add1.txt" = "Your text") *)
 end
 
 TEST_MODULE "CONFIG" = struct
