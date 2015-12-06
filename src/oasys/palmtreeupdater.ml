@@ -726,7 +726,6 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config):palm_tree * conf
   | (RM,[EMPTY],files) -> file_batch_op rm_file tree config repo_dir current_branch files
   | (RM,[FILE],files) -> file_batch_op rm_file tree config repo_dir current_branch files
   | (RM,[BNCH],[branch_name]) -> rm_branch tree config repo_dir current_branch branch_name
-  | (RESET,[EMPTY],files) -> file_batch_op reset_file tree config repo_dir current_branch files
   | (RESET,[FILE],files) -> file_batch_op reset_file tree config repo_dir current_branch files
   | (RESET,[BNCH],[hash]) -> reset_branch_mixed tree config repo_dir current_branch hash
   | (RESET,[HARD],[hash]) -> reset_branch_hard tree config repo_dir current_branch hash
