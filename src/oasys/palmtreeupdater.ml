@@ -28,7 +28,9 @@ let to_string_branch branch =
 
 let to_string_branches tree current_branch =
   CommitTree.fold
-  (fun k _ a -> a ^ if (k = current_branch) then "* "^k^"\n" else " "^k^"\n")
+  (fun k _ a -> a ^
+      if (k = current_branch) then "<green>* "^k^"</green>\n"
+      else "  "^k^"\n")
   tree ""
 
 let get_config config =
@@ -200,6 +202,24 @@ let rm_branch tree config repo_dir current_branch branch_name =
 
 let reset_file tree config repo_dir current_branch file_name =
   let work_dir = get_work_dir repo_dir in
+  match List.mem file_name work_dir with
+  | false ->
+    let tree = {tree with work_dir=work_dir} in
+    (tree, config, Failure (Feedback.cannot_find file_name))
+  | true ->
+    let (added,removed) = tree.index in
+    let added = added |-| [file_name] in
+    let removed = removed |-| [file_name] in
+    let tree = {
+      head=tree.head;
+      index=(added,removed);
+      work_dir=work_dir;
+      commit_tree=tree.commit_tree
+    } in
+    (tree, config, Success (Feedback.file_reset file_name))
+
+let checkout_file tree config repo_dir current_branch file_name =
+  let work_dir = get_work_dir repo_dir in
   let (id,_,committed) = tree.head in
   match List.mem file_name work_dir with
   | false ->
@@ -209,7 +229,7 @@ let reset_file tree config repo_dir current_branch file_name =
     (match List.mem file_name committed with
     | false ->
       let tree = {tree with work_dir=work_dir} in
-      (tree, config, Failure ("ambiguous argument \'"^file_name^"\': unknown revision or path not in the working tree."))
+      (tree, config, Failure (Feedback.unknown_revision_path file_name))
     | true ->
       let (added,removed) = tree.index in
       let added = added |-| [file_name] in
@@ -223,7 +243,7 @@ let reset_file tree config repo_dir current_branch file_name =
         work_dir=work_dir;
         commit_tree=tree.commit_tree
       } in
-      (tree, config, Success (Feedback.file_reset file_name) ))
+      (tree, config, Success (Feedback.file_checkout file_name) ))
 
 let commit tree config repo_dir current_branch msg =
   let work_dir = get_work_dir repo_dir in
@@ -430,9 +450,9 @@ let status tree config repo_dir current_branch =
     if ( max (List.length added) (List.length removed) > 0 ) then
     (
       "Changes to be committed:\n" ^
-      (Listops.to_string (abbrev_files repo_dir (added |-| (added |-| committed) ) ) "\t" "\nadded:\t" "\n" ) ^
-      (Listops.to_string (abbrev_files repo_dir (added |-| committed) ) "\t" "\nnew file:\t" "\n" ) ^
-      (Listops.to_string (abbrev_files repo_dir removed) "\t" "\ndeleted:\t" "\n\n")
+      (Listops.to_string (abbrev_files repo_dir (added |-| (added |-| committed) ) ) "<green>\t" "\nadded:\t" "</green>\n" ) ^
+      (Listops.to_string (abbrev_files repo_dir (added |-| committed) ) "<green>\t" "\nnew file:\t" "</green>\n" ) ^
+      (Listops.to_string (abbrev_files repo_dir removed) "<red>\t" "\ndeleted:\t" "</red>\n\n")
     )
     else
     ("Nothing to commit\n" )
@@ -443,7 +463,7 @@ let status tree config repo_dir current_branch =
     if (List.length (untracked_files) > 0) then
     (
       let untracked_files = abbrev_files repo_dir untracked_files in
-      "Untracked files:\n" ^ (Listops.to_string (untracked_files) "\t" "\n\t" "\n")
+      "Untracked files:\n" ^ (Listops.to_string (untracked_files) "<red>\t" "\n\t" "</red>\n")
     )
     else
     ("Working directory clean" )
@@ -717,6 +737,7 @@ let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config):palm_tree * conf
   | (RESET,[SOFT],[hash]) -> reset_branch_soft tree config repo_dir current_branch hash
   | (BRANCH,[EMPTY],[]) -> get_branches tree config repo_dir current_branch
   | (BRANCH,[EMPTY],[branch_name]) -> branch tree config repo_dir current_branch branch_name
+  | (CHECKOUT,[FILE],files) -> file_batch_op checkout_file tree config repo_dir current_branch files
   | (CHECKOUT,[EMPTY],[branch_name]) -> checkout tree config repo_dir current_branch branch_name
   | (COMMIT,[MSG],[message]) -> commit tree config repo_dir current_branch message
   | (STATUS,[EMPTY],[]) -> status tree config repo_dir current_branch
