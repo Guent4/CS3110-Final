@@ -19,9 +19,11 @@ let colors = [
   ("white", "\027[37m");
   ("red","\027[31m");
   ("green","\027[32m");
-  ("brown","\027[33m");
+  ("orange","\027[33m");
   ("blue","\027[34m");
-  ("cyan","\027[36m")]
+  ("cyan","\027[36m");
+  ("bred","\027[41m");
+  ("borange","\027[43m")]
 
 (* List of all of the accepted commands *)
 let cmd_str_list = ["init";"log";"status";"add";"commit";"branch";"checkout";
@@ -178,18 +180,18 @@ let opt_default =
  *    - i1,i2 - Optional ints that are to be included in the error
  * Return: unit (the error is directly printed) *)
 let print_error ?s1:(s1="") ?s2:(s2="") ?i1:(i1=0) ?i2:(i2=0) = function
-  | 0 -> Printf.printf "\nWelcome to OASys!\nCreated by Gu, Ho, Moheed, and Ramalingam\n\nTo search up info about a specific command, type \"help --cmd command_name\".\nTo search up more general topics, type \"help search_word(s)\".\n\nFor questions/comments/concerns, contact ____.\n\n"
-  | 1 -> Printf.printf "FAILURE: \"%s\" is an invalid option.\n" s1
-  | 2 -> Printf.printf "FAILURE: The \"%s\" command does not support more than 1 option.\n" s1
-  | 4 -> Printf.printf "FAILURE: Invalid command given: \"%s\".\n" s1
-  | 5 -> Printf.printf "FAILURE: Option \"%s\" is not supported for \"%s\".\n" s1 s2
-  | 6 -> Printf.printf "FAILURE: No arguments were given when %s argument(s) was expected.\n" s1
-  | 7 -> Printf.printf "FAILURE: %i argument(s) were given when %s argument(s) was expected.\n" i1 s1
-  | 8 -> Printf.printf "FAILURE: Did not enter a command to search.\n"
-  | 9 -> Printf.printf "FAILURE: Searching for too many commands.  Please reduce to only one command.\n"
-  | 10 -> Printf.printf "FAILURE: \"%s\" is not a command; command-search cannot be completed.\nTry general-search without \"--cmd\" option.\n" s1
-  | 11 -> Printf.printf "UNSUCCESSFUL: Cannot find the command \"%s\" in the documentation.\n" s1
-  | 12 -> Printf.printf "UNSUCCESSFUL: Cannot find search in the documentation\n"
-  | 13 -> Printf.printf "FAILURE: Not a valid option.\n"
-  | 14 -> Printf.printf "UNSUCCESSFUL: Apologies. Unable to find topic in documentation.\n"
+  | 0 -> Printf.printf "__        _______ _     ____ ___  __  __ _____   _____ ___  \n\\ \\      / / ____| |   / ___/ _ \\|  \\/  | ____| |_   _/ _ \\ \n \\ \\ /\\ / /|  _| | |  | |  | | | | |\\/| |  _|     | || | | |\n  \\ V  V / | |___| |__| |__| |_| | |  | | |___    | || |_| |\n   \\_/\\_/  |_____|_____\\____\\___/|_|  |_|_____|   |_| \\___/ \n  ___    _    ____            \n / _ \\  / \\  / ___| _   _ ___ \n| | | |/ _ \\ \\___ \\| | | / __|\n| |_| / ___ \\ ___) | |_| \\__ \\\n \\___/_/   \\_\\____/ \\__, |___/\n                    |___/     \nCreated by Gu, Ho, Moheed, and Ramalingam\n\nTo search up info about a specific command, type \"help --cmd command_name\".\nTo search up more general topics, type \"help search_word(s)\".\n\nFor questions/comments/concerns, contact ____.\n\n"
+  | 1 -> Printf.printf "\027[41mFAILURE:\027[49m \"%s\" is an invalid option.\n" s1
+  | 2 -> Printf.printf "\027[41mFAILURE:\027[49m The \"%s\" command does not support more than 1 option.\n" s1
+  | 4 -> Printf.printf "\027[41mFAILURE:\027[49m Invalid command given: \"%s\".\n" s1
+  | 5 -> Printf.printf "\027[41mFAILURE:\027[49m Option \"%s\" is not supported for \"%s\".\n" s1 s2
+  | 6 -> Printf.printf "\027[41mFAILURE:\027[49m No arguments were given when %s argument(s) was expected.\n" s1
+  | 7 -> Printf.printf "\027[41mFAILURE:\027[49m %i argument(s) were given when %s argument(s) was expected.\n" i1 s1
+  | 8 -> Printf.printf "\027[41mFAILURE:\027[49m Did not enter a command to search.\n"
+  | 9 -> Printf.printf "\027[41mFAILURE:\027[49m Searching for too many commands.  Please breduce to only one command.\n"
+  | 10 -> Printf.printf "\027[41mFAILURE:\027[49m \"%s\" is not a command; command-search cannot be completed.\nTry general-search without \"--cmd\" option.\n" s1
+  | 11 -> Printf.printf "\027[43mUNSUCCESSFUL:\027[49m Cannot find the command \"%s\" in the documentation.\n" s1
+  | 12 -> Printf.printf "\027[43mUNSUCCESSFUL:\027[49m Cannot find search in the documentation\n"
+  | 13 -> Printf.printf "\027[41mFAILURE:\027[49m Not a valid option.\n"
+  | 14 -> Printf.printf "\027[43mUNSUCCESSFUL:\027[49m Apologies. Unable to find topic in documentation.\n"
   | _ -> Printf.printf "\n"
