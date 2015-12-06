@@ -1,5 +1,6 @@
 open Coconuts
 open Palmtreeupdater
+open Core.Std
 
 let setup_tree () =
   let () = Fileio.remove_dir "./test_proj/.oasys/" in
@@ -129,15 +130,133 @@ TEST_MODULE "commit tests" = struct
   | _ -> false
   )
 end *)
-
-(* TEST_MODULE "rm tests" = struct
+(*
+TEST_MODULE "reset FILES tests" = struct
+  (* clear current working directory *)
+  FileUtil.rm ["add1.txt";"add2.txt"]
   let (tree,config) = setup_tree ()
   let (tree',config',feedback) = init tree config
-  TEST_UNIT "rm EMPTY" =
-    let cmd = (RM,[EMPTY],[]) in
 
+  let () = Out_channel.write_all "add1.txt" ~data:"Your text"
+  let (tree'',config'',feedback') = update_tree tree' config' "add1.txt"
+  let (tree''',config''',feedback'') = update_tree (RESET,[FILE],["add1.txt"])
 
+end  *)
+
+TEST_MODULE "reset tests" = struct
+  (* clear current working directory *)
+  FileUtil.rm ["add1.txt"]
+  let (tree,config) = setup_tree ()
+  let (tree',config',feedback) = init tree config
+  let (id,msg,committed) = tree'.head
+  (* create some files and add them and commit*)
+  let () = Out_channel.write_all "add1.txt" ~data:"Your text"
+  let (tree'',config'',feedback') = update_tree (ADD,[EMPTY],["add1.txt"]) tree' config'
+  let (tree''',config''',feedback'') = update_tree (COMMIT,[MSG],["add1.txt"]) tree'' config''
+  let (tree4, config4, feedback3) = update_tree (RESET,[MIXED],[id]) tree''' config'''
+  TEST_UNIT "MIXED tests" =
+    (assert (tree4.head = tree'.head));
+    (assert (tree4.index = tree'.index));
+    (assert (tree4.work_dir = tree'''.work_dir))
+  TEST_UNIT "MIXED feedback" = assert(
+    match feedback3 with
+    | Success _ -> true
+    | Failure _ -> false
+    )
+  let (tree5,config5, feedback4) = update_tree (RESET,[SOFT],[id]) tree''' config'''
+  TEST_UNIT "SOFT tests" =
+    (assert (tree5.head = tree'.head));
+    (assert (tree5.index = tree'''.index));
+    (assert (tree5.work_dir = tree'''.work_dir))
+  TEST_UNIT "SOFT feedback" = assert(
+    match feedback4 with
+    | Success _ -> true
+    | Failure _ -> false
+    )
+  let (tree6,config6, feedback5) = update_tree (RESET,[HARD],[id]) tree''' config'''
+  TEST_UNIT "HARD tests" =
+    (assert (tree6.head = tree'.head));
+    (assert (tree6.index = tree'.index));
+    (assert (tree6.work_dir = tree'.work_dir))
+  TEST_UNIT "HARD feedback" = assert(
+    match feedback5 with
+    | Success _ -> true
+    | Failure _ -> false
+    )
 end
 
- *)
+TEST_MODULE "branch + checkout tests" = struct
+FileUtil.rm ["add1.txt";"add2.txt"]
+  let (tree,config) = setup_tree ()
+  let (tree',config',feedback) = init tree config
+  let (id,msg,committed) = tree'.head
+  (* create some files and add them and commit*)
+  let () = Out_channel.write_all "add1.txt" ~data:"Your text"
+  let (tree'',config'',feedback') = update_tree (ADD,[EMPTY],["add1.txt"]) tree' config'
+  let (tree''',config''',feedback'') = update_tree (COMMIT,[MSG],["add1.txt"]) tree'' config''
+  let (tree4, config4, feedback3) = update_tree (BRANCH,[EMPTY],["hello"]) tree''' config'''
+  TEST_UNIT "new branch" =
+    let master = CommitTree.find "master" tree4.commit_tree in
+    let branch = CommitTree.find "hello" tree4.commit_tree in
+    assert(branch=master);
+    assert(config4.current_branch="master")
+  TEST_UNIT "new branch feedback" = assert(
+    match feedback3 with
+    | Success _ -> true
+    | Failure _ -> false
+    )
+  let () = Out_channel.write_all "add1.txt" ~data:"Your text2"
+  let (tree5,config5,feedback4) = update_tree (ADD,[EMPTY],["add2.txt"]) tree4 config4
+  let (tree6,config6,feedback5) = update_tree (COMMIT,[MSG],["add2.txt"]) tree5 config5
+  let (tree7,config7,feedback6) = update_tree (CHECKOUT,[EMPTY],["hello"]) tree6 config6
+  TEST_UNIT "checkout" =
+    assert(tree7=tree4);
+    assert(config7.current_branch="hello")
+  TEST_UNIT "checkout feedback" = assert(
+    match feedback6 with
+    | Success _ -> true
+    | Failure _ -> false
+    )
+end
+
+TEST_MODULE "CONFIG" = struct
+  let (tree,config) = setup_tree ()
+  let (tree',config',feedback) = init tree config
+  let (tree2,config2,feedback1) = update_tree (CONFIG,[CONFIG_SET],["username";"rho"]) tree' config'
+  let (tree3,config3,feedback2) = update_tree (CONFIG,[CONFIG_SET],["password";"rho"]) tree2 config2
+  let (tree4,config4,feedback3) = update_tree (CONFIG,[CONFIG_SET],["upstream";"vagrant@127.0.0.1"]) tree3 config3
+  TEST_UNIT "username" =
+    assert(config2.username = "rho")
+  let hashed = string_of_int (Hashtbl.hash "rho")
+  TEST_UNIT "password" =
+    assert(config3.password = hashed)
+  TEST_UNIT "upstream" =
+    assert(config4.upstream = "vagrant@127.0.0.1")
+end
+
+TEST_MODULE "PUSH AND PULL" = struct
+  let _ = FileUtil.rm ["add1.txt";"add2.txt"]
+  let (tree,config) = setup_tree ()
+  let (tree',config',feedback) = init tree config
+  let (id,msg,committed) = tree'.head
+  (* create some files and add them and commit*)
+  let () = Out_channel.write_all "add1.txt" ~data:"Your text"
+  let (tree'',config'',feedback') = update_tree (ADD,[EMPTY],["add1.txt"]) tree' config'
+  let (tree''',config''',feedback'') = update_tree (COMMIT,[MSG],["add1.txt"]) tree'' config''
+  let (tree4,config4,feedback3) = update_tree (PUSH,[EMPTY],[]) tree''' config'''
+  let (tree4,config4,feedback3) = update_tree (CONFIG,[CONFIG_SET],["upstream";"vagrant@127.0.0.1"]) tree4 config4
+  TEST_UNIT "push" =
+    assert(tree4=tree''');
+    assert(match feedback with |Success _ -> true
+                               |Failure s -> (print_endline s); false)
+  let (tree5,config5, feedback4) = update_tree (RESET,[HARD],[id]) tree4 config4
+  let (tree6,config6, feedback5) = update_tree (PULL,[EMPTY],[]) tree5 config5
+  TEST_UNIT "pull" =
+    assert(tree6=tree4);
+    assert(config6=config4);
+    assert(match feedback with |Success _ -> true
+                               |Failure s -> (print_endline s); false)
+end
+
+let _ = FileUtil.rm ["add1.txt";"add2.txt"]
 let () = Pa_ounit_lib.Runtime.summarize ()
