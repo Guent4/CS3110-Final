@@ -63,5 +63,4 @@ TEST_MODULE "interpret" = struct
   TEST = il "merge branch1 branch2" = None
 
   TEST = il "config %--set-upstream 1 2" = Some (CONFIG, [CONFIG_SET], ["1"; "2"])
-  TEST = il "config 1 2" = None
 end
