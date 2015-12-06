@@ -200,27 +200,27 @@ TEST_MODULE "commit tests" = struct
     | _ -> false
   )
 end
-(*
+
 TEST_MODULE "reset FILES tests" = struct
-  (* clear current working directory *)
-  FileUtil.rm ["add1.txt";"add2.txt"]
   let (tree,config) = setup_tree ()
   let (tree',config',feedback) = init tree config
-
-  let () = Out_channel.write_all "add1.txt" ~data:"Your text"
-  let (tree'',config'',feedback') = update_tree tree' config' "add1.txt"
-  let (tree''',config''',feedback'') = update_tree (RESET,[FILE],["add1.txt"])
-
-end  *)
+  let () = Out_channel.write_all "./test_proj/add1.txt" ~data:"Your text"
+  let (tree'',config'',feedback') = update_tree (ADD,[EMPTY],["add1.txt"]) tree' config'
+  let (ad, rem) = tree''.index
+  TEST_UNIT =
+    assert(List.mem ad ((Sys.getcwd()) ^ "/test_proj/"  ^ "add1.txt"))
+  let (tree''',config''',feedback'') = update_tree (RESET,[FILE],["add1.txt"]) tree'' config''
+  let (ad, rem) = tree'''.index
+    TEST_UNIT =
+  assert(not (List.mem ad ((Sys.getcwd()) ^ "/test_proj/"  ^ "add1.txt")))
+end
 
 TEST_MODULE "reset tests" = struct
-  (* clear current working directory *)
-  (* FileUtil.rm ["add1.txt"] *)
   let (tree,config) = setup_tree ()
   let (tree',config',feedback) = init tree config
   let (id,msg,committed) = tree'.head
   (* create some files and add them and commit*)
-  let () = Out_channel.write_all "add1.txt" ~data:"Your text"
+  let () = Out_channel.write_all "./test_proj/add1.txt" ~data:"Your text"
   let (tree'',config'',feedback') = update_tree (ADD,[EMPTY],["add1.txt"]) tree' config'
   let (tree''',config''',feedback'') = update_tree (COMMIT,[MSG],["add1.txt"]) tree'' config''
   let (tree4, config4, feedback3) = update_tree (RESET,[MIXED],[id]) tree''' config'''
