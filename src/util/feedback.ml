@@ -1,3 +1,5 @@
+(* Module is responsible for returning a formatted string that will be printed *)
+
 let empty = ""
 let to_string_commit id msg = "====\nCommit " ^ id ^ "\n" ^ msg ^ "\n===="
 let repo_exists = "an oasys repository already exists in this directory"
@@ -19,7 +21,7 @@ let branch_created branch_name = branch_name ^ " was created"
 let branch_checkout_uncommitted_changes = "cannot checkout a new branch until all changes have been committed"
 let branch_checkedout branch_name = branch_name ^ " has been successfully checked out"
 let branch_does_not_exist branch_name = "error: pathspec \'"^branch_name^"\' did not match any branch(es) known to oasys."
-let no_support = "Sorry, we don't support that command"
+let no_support = "Sorry, command not supported"
 let no_repo = "fatal: Not an oasys repository: .oasys"
 let branch_removed branch_name = branch_name ^ " has been removed"
 let unknown_revision_path file_name = "ambiguous argument \'"^file_name^"\': unknown revision or path not in the working tree."

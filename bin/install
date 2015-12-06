@@ -20,11 +20,14 @@ if [[ " $file_content " =~ $regex ]]
     printf '\nalias oasys="%s"\nalias oasys_uninstall="%s"\nOASYS_HOME=%s' ${OASYS_BIN}/oasys ${OASYS_BIN}/uninstall ${OASYS_BIN}/../ >> ~/.bashrc
     CUR_DIR=$(pwd)
     cd ${OASYS_BIN}/../
+
     bin/clean
     bin/compile
     bin/gen-keypair
     mkdir repos
     mkdir ~/.oasys_origin
+    mkdir remote
+
     cd ${CUR_DIR}
     printf '\n\n%s\n%s\n' 'Installation Successful' 'Please restart your terminal for changes to be registered.'
 fi
