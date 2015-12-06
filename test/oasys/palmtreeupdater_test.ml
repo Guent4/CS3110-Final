@@ -19,12 +19,12 @@ let add tree config filename =
   let (tree',config',feedback) = update_tree cmd tree config in
   (tree',config',feedback)
 
-let add_all tree config = 
-  let cmd = (ADD,[ALL],[]) in 
+let add_all tree config =
+  let cmd = (ADD,[ALL],[]) in
   let (tree',config',feedback) = update_tree cmd tree config in
   (tree',config',feedback)
 
-let remove tree config filename = 
+let remove tree config filename =
   let cmd = (RM,[FILE],[filename]) in
   let (tree',config',feedback) = update_tree cmd tree config in
   (tree',config',feedback)
@@ -91,9 +91,9 @@ TEST_MODULE "add, add_all and remove tests" = struct
 
   (*ADD TESTS*)
   (*Create file to add*)
-  let (tree,config) = setup_tree () 
-  let (tree,config,feedback) = init tree config 
-  let (tree',config',feedback) = add tree config "wuggle.txt" 
+  let (tree,config) = setup_tree ()
+  let (tree,config,feedback) = init tree config
+  let (tree',config',feedback) = add tree config "wuggle.txt"
   TEST_UNIT "test added file" = assert
   (
     let (ad, rem) = tree'.index in
@@ -103,7 +103,7 @@ TEST_MODULE "add, add_all and remove tests" = struct
   (
     config' = config
   )
-  
+
   (*Create another file to add*)
   (* let () = Out_channel.write_all "./test_proj/test.txt" ~data:"david" *)
   let (tree'',config'',feedback) = add tree' config' "test.txt"
@@ -121,7 +121,7 @@ TEST_MODULE "add, add_all and remove tests" = struct
   (*REMOVE TESTS*)
   (*Remove wuggle.txt*)
   let (rmtree, rmconfig, rmfeedback) = remove tree'' config'' "wuggle.txt"
-  TEST_UNIT "remove wuggle.txt" = assert 
+  TEST_UNIT "remove wuggle.txt" = assert
   (
     let (ad, rem) = rmtree.index in
     let wug = List.mem rem ((Sys.getcwd()) ^ "/test_proj/"  ^ "wuggle.txt") in
@@ -145,12 +145,12 @@ TEST_MODULE "add, add_all and remove tests" = struct
   (
     rmconfig' = rmconfig
   )
- 
+
   (*ADD ALL TESTS*)
   let (alltree, allconfig, allfeedback) = add_all rmtree' rmconfig'
   TEST_UNIT = assert
   (
-    let (ad, rem) = alltree.index in 
+    let (ad, rem) = alltree.index in
     let wug = List.mem ad ((Sys.getcwd()) ^ "/test_proj/"  ^ "wuggle.txt") in
     let wug2 = List.mem ad ((Sys.getcwd()) ^ "/test_proj/"  ^ "test.txt") in
     wug && wug2
@@ -187,7 +187,7 @@ TEST_MODULE "commit tests" = struct
     let (i, m, c) = comtree.head in
     let wug = List.mem c ((Sys.getcwd()) ^ "/test_proj/"  ^ "wuggle.txt") in
     let wug2 = List.mem c ((Sys.getcwd()) ^ "/test_proj/"  ^ "test.txt") in
-    wug && wug2 
+    wug && wug2
   )
   TEST_UNIT "commit-tree test" = assert
   (
@@ -196,7 +196,7 @@ TEST_MODULE "commit tests" = struct
     | (i, m, c)::t -> print_endline m;(m = "test") && (List.mem c ((Sys.getcwd()) ^ "/test_proj/"  ^ "wuggle.txt")) && (List.mem c ((Sys.getcwd()) ^ "/test_proj/"  ^ "test.txt"))
     | _ -> false
   )
-end 
+end
 (*
 TEST_MODULE "reset FILES tests" = struct
   (* clear current working directory *)
