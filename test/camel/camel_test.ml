@@ -61,4 +61,6 @@ TEST_MODULE "interpret" = struct
 
   TEST = il "merge branch1" = Some (MERGE, [EMPTY], ["branch1"])
   TEST = il "merge branch1 branch2" = None
+
+  TEST = il "config %--set 1 2" = Some (CONFIG, [CONFIG_SET], ["1"; "2"])
 end
