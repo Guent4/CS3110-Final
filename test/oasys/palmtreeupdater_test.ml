@@ -193,7 +193,7 @@ TEST_MODULE "commit tests" = struct
   (
     let master = CommitTree.find "master" comtree.commit_tree in
     match master with
-    | (i, m, c)::t -> print_endline m;(m = "test") && (List.mem c ((Sys.getcwd()) ^ "/test_proj/"  ^ "wuggle.txt")) && (List.mem c ((Sys.getcwd()) ^ "/test_proj/"  ^ "test.txt"))
+    | (i, m, c)::t -> (m = "test") && (List.mem c ((Sys.getcwd()) ^ "/test_proj/"  ^ "wuggle.txt")) && (List.mem c ((Sys.getcwd()) ^ "/test_proj/"  ^ "test.txt"))
     | _ -> false
   )
 end 
