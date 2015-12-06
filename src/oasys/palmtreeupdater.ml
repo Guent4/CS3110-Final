@@ -1,7 +1,10 @@
 open Coconuts
 
+(* constant for oasys directory, this directory will contain all committed files *)
 let oasys_dir = ".oasys/"
 
+(* hashes a [state] to generate the hash id for any commit. the state must be
+ * the pair (tree,config) to get correct hash ids *)
 let gen_hash state =
   let hash = Hashtbl.hash state in
   let () = Random.init hash in
@@ -13,19 +16,24 @@ let gen_hash state =
   let gen _ = String.make 1 (char_of_int(gen())) in
   String.concat "" (Array.to_list (Array.init 40 gen))
 
+(* make life easier with some defined infix operators :D *)
 let (|+|) l1 l2 = Listops.union l1 l2
 
 let (|-|) l1 l2 = Listops.subtract l1 l2
 
 let (|=|) l1 l2 = Listops.equal l1 l2
 
+(* returns a stringified [commit] with id and message *)
 let to_string_commit commit =
   let (id,msg,_) = commit in
   Feedback.to_string_commit id msg
 
+(* returns a collection of commits from [branch], stringified with their id and
+ * message in order with recent commit first *)
 let to_string_branch branch =
   List.fold_left (fun a x -> a ^ (to_string_commit x ^ "\n")) "" branch
 
+(* returns user's branches with a the [current_branch] marked with an asterisk *)
 let to_string_branches tree current_branch =
   CommitTree.fold
   (fun k _ a -> a ^
@@ -33,11 +41,13 @@ let to_string_branches tree current_branch =
       else "  "^k^"\n")
   tree ""
 
+(* return a pair of repository directory [repo_dir] and user's [current_branch] *)
 let get_config config =
   let repo_dir = config.repo_dir in
   let current_branch = config.current_branch in
   (repo_dir,current_branch)
 
+(* ignore files that we dont want to version like anything in .oasys/ *)
 let ignore_file repo_dir file_name =
   (
     let regexp = Str.regexp (repo_dir ^ oasys_dir) in
@@ -48,15 +58,19 @@ let ignore_file repo_dir file_name =
     repo_dir = (file_name ^ "/")
   )
 
+(* return the user's work directory as a list of absolute file paths *)
 let get_work_dir repo_dir =
   let files = FileUtil.find FileUtil.True repo_dir (fun x y -> y :: x) [] in
   let files = List.filter (fun x -> not (ignore_file repo_dir x)) files in
   files
 
+(* returns a list of files from [files] that matches [file_pattern] *)
 let get_files file_pattern files =
   let regexp = Str.regexp file_pattern in
   List.filter (fun x -> Str.string_match regexp x 0) files
 
+(* returns a list of relative paths from absolute paths of [files]. all members
+ * of files must be prefixed with repo_dir *)
 let abbrev_files repo_dir files =
   List.fold_left
   (fun a x ->
@@ -65,6 +79,8 @@ let abbrev_files repo_dir files =
   []
   files
 
+(* copies files from [source_dir] over to [target_dir]. the repo_dir is a prefix
+ * for every member of committed *)
 let copy_over_files repo_dir committed source_dir target_dir =
   List.iter
   (fun x -> Fileio.copy_file source_dir x target_dir)
@@ -79,6 +95,7 @@ let rec find_commit hash = function
     | true -> Some ( (id,msg,committed), prev_commits )
   )
 
+(* initializes oasys repository at [repo_dir] *)
 let init tree config repo_dir current_branch =
   let work_dir = get_work_dir repo_dir in
   match Fileio.file_exists (repo_dir ^ oasys_dir) with
@@ -108,6 +125,7 @@ let init tree config repo_dir current_branch =
     | _ -> (tree,config,Failure Feedback.no_repo)
     )
 
+(* adds [file_name] to version control *)
 let add tree config repo_dir current_branch file_name =
   let work_dir = get_work_dir repo_dir in
   match List.mem file_name work_dir with
@@ -126,6 +144,8 @@ let add tree config repo_dir current_branch file_name =
     } in
     (tree, config, Success (Feedback.file_added file_name) )
 
+(* marks a file for remoeval from version control and removes file from the
+ * the user's work diectory *)
 let rm_file tree config repo_dir current_branch file_name =
   let work_dir = get_work_dir repo_dir in
   match List.mem file_name work_dir with
@@ -145,6 +165,8 @@ let rm_file tree config repo_dir current_branch file_name =
     } in
     (tree, config, Success (Feedback.file_removed file_name) )
 
+(* marks a file for removal from version control but does not remove the file from
+ * the user's work directory *)
 let rm_file_cached tree config repo_dir current_branch file_name =
   let work_dir = get_work_dir repo_dir in
   match List.mem file_name work_dir with
@@ -163,6 +185,8 @@ let rm_file_cached tree config repo_dir current_branch file_name =
     } in
     (tree, config, Success (Feedback.file_removed file_name) )
 
+(* removes branch [branch_name] from repository. note you cannot remove the
+ * branch you are on nor the master branch. *)
 let rm_branch tree config repo_dir current_branch branch_name =
   let work_dir = get_work_dir repo_dir in
   match current_branch = branch_name with
@@ -194,6 +218,7 @@ let rm_branch tree config repo_dir current_branch branch_name =
       )
     )
 
+(* removes [file_name] from index *)
 let reset_file tree config repo_dir current_branch file_name =
   let work_dir = get_work_dir repo_dir in
   match List.mem file_name work_dir with
@@ -212,6 +237,8 @@ let reset_file tree config repo_dir current_branch file_name =
     } in
     (tree, config, Success (Feedback.file_reset file_name))
 
+(* checkout [file_name] from HEAD and update user's working directory file with the
+ * checked out file *)
 let checkout_file tree config repo_dir current_branch file_name =
   let work_dir = get_work_dir repo_dir in
   let (id,_,committed) = tree.head in
@@ -239,6 +266,8 @@ let checkout_file tree config repo_dir current_branch file_name =
       } in
       (tree, config, Success (Feedback.file_checkout file_name) ))
 
+(* commit the user's changes that are present in index with message [msg] on
+ * branch [current_branch] *)
 let commit tree config repo_dir current_branch msg =
   let work_dir = get_work_dir repo_dir in
   let (id,_,_) = tree.head in
@@ -282,6 +311,8 @@ let commit tree config repo_dir current_branch msg =
       (tree, config, Success ((Feedback.changes_committed current_branch id msg) ^ commit_result))
     )
 
+(* return ordered collection of commits that compose branch [current_branch]
+ * the most recent commit appears at the top *)
 let log tree config repo_dir current_branch =
   let work_dir = get_work_dir repo_dir in
   let commit_tree = tree.commit_tree in
@@ -290,6 +321,7 @@ let log tree config repo_dir current_branch =
   let tree = {tree with work_dir=work_dir} in
   (tree, config, Success log_result)
 
+(* returns all branches in existing oasys repository *)
 let get_branches tree config repo_dir current_branch =
   let work_dir = get_work_dir repo_dir in
   let commit_tree = tree.commit_tree in
@@ -297,6 +329,8 @@ let get_branches tree config repo_dir current_branch =
   let tree = {tree with work_dir=work_dir} in
   (tree, config, Success result)
 
+(* create branch [branch_name] and copy over all commits from [current_branch] to
+ * the newly created branch *)
 let branch tree config repo_dir current_branch branch_name =
   let work_dir = get_work_dir repo_dir in
   let commit_tree = tree.commit_tree in
@@ -315,6 +349,7 @@ let branch tree config repo_dir current_branch branch_name =
     } in
     (tree,config, Success (Feedback.branch_created branch_name))
 
+(* checkouts [branch_name] and updates config and user's working directory *)
 let checkout tree config repo_dir current_branch branch_name =
   let work_dir = get_work_dir repo_dir in
   let commit_tree = tree.commit_tree in
@@ -341,6 +376,8 @@ let checkout tree config repo_dir current_branch branch_name =
     | _ -> (tree,config,Failure (Feedback.no_repo))
     )
 
+(* perform primitive file operation [op] on several files, such primitive operations
+ * include: add_file rm_file reset_file *)
 let file_batch_op op tree config repo_dir current_branch files =
   let work_dir = get_work_dir repo_dir in
   let tree = {tree with work_dir=work_dir} in
@@ -375,6 +412,7 @@ let file_batch_op op tree config repo_dir current_branch files =
   in
   (tree',config',Success feedback)
 
+(* resets head to [hash] *)
 let reset_branch_soft tree config repo_dir current_branch hash =
   let work_dir = get_work_dir repo_dir in
   let commit_tree = tree.commit_tree in
@@ -392,6 +430,7 @@ let reset_branch_soft tree config repo_dir current_branch hash =
     } in
     (tree,config,Success ("HEAD was reset to " ^ hash))
 
+(* resets head to [hash] and resets index *)
 let reset_branch_mixed tree config repo_dir current_branch hash =
   let work_dir = get_work_dir repo_dir in
   let commit_tree = tree.commit_tree in
@@ -412,6 +451,8 @@ let reset_branch_mixed tree config repo_dir current_branch hash =
     } in
     (tree,config,Success ("HEAD was reset to " ^ hash))
 
+(* resets head to an earlier commit, resets index, updates working directory with those
+ * files and removes all commits ahead of [hash] *)
 let reset_branch_hard tree config repo_dir current_branch hash =
   let work_dir = get_work_dir repo_dir in
   let commit_tree = tree.commit_tree in
@@ -436,6 +477,7 @@ let reset_branch_hard tree config repo_dir current_branch hash =
     } in
     (tree,config,Success ("HEAD was reset to " ^ hash))
 
+(* informs user of status of working directory and index *)
 let status tree config repo_dir current_branch =
   let work_dir = get_work_dir repo_dir in
   let (id,msg,committed) = tree.head in
@@ -467,6 +509,7 @@ let status tree config repo_dir current_branch =
   let tree = {tree with work_dir = work_dir} in
   (tree,config,Success feedback)
 
+(* sets a key value pair for user's config *)
 let config_set tree config repo_dir current_branch key value =
   let work_dir = get_work_dir repo_dir in
   match key with
@@ -536,6 +579,7 @@ let config_set tree config repo_dir current_branch key value =
   )
   | _ -> (tree,config,Failure "Unrecognized key")
 
+(* find a common ancestor between two branches *)
 let find_common_ancestor tree current_branch branch_name =
   let commit_tree = tree.commit_tree in
   let branch = CommitTree.find current_branch commit_tree in
@@ -545,7 +589,8 @@ let find_common_ancestor tree current_branch branch_name =
   | [] -> assert false
   | x::xs -> x
 
-
+(* merge the head of two branches, namely [current_branch] and [branch_name]. source
+ * is the head of the [current_branch] and [target] is the head of [branch_name] *)
 let merge_heads source target repo_dir current_branch branch_name state =
   let (tree,_) = state in
   let (id',_,committed') = source in
@@ -576,6 +621,8 @@ let merge_heads source target repo_dir current_branch branch_name state =
   let id = gen_hash state in
   (id,"merge from "^branch_name,resolved |+| conflicted)
 
+(* merge branch [branch_name] into [current_branch]. note this creates a new
+ * commit and updates the head of [current_branch] to that commmit. *)
 let merge tree config repo_dir current_branch branch_name =
   let work_dir = get_work_dir repo_dir in
   let commit_tree = tree.commit_tree in
@@ -627,6 +674,7 @@ let merge tree config repo_dir current_branch branch_name =
       | [] -> assert false
     )
 
+(* push current tree state to remote host found in upstream of [config] *)
 let push tree config repo_dir current_branch =
   let work_dir = get_work_dir repo_dir in
   let value = config.upstream in
@@ -677,6 +725,7 @@ let push tree config repo_dir current_branch =
     | _ -> (tree,config,Failure "Bad upstream provided. Try: [username]@[domain]")
   )
 
+(* pull current tree state from remote host found in upstream of [config] *)
 let pull tree config repo_dir current_branch =
   let work_dir = get_work_dir repo_dir in
   let value = config.upstream in
@@ -730,9 +779,16 @@ let pull tree config repo_dir current_branch =
     | _ -> (tree,config,Failure "Bad upstream provided. Try: [username]@[domain]")
   )
 
-(* updates the state of the version control tree
- *
- *)
+(* [update_tree cmd tree config] - updates the state of the version control tree and user config.
+ * performs necessary file io operations to maintain consistent invariants between .oasys/ directory
+ * that will be created if init is executed in the user's potential working directory and the
+ * tree state.
+ * Parameters:
+ *    - cmd : parsed command
+ *    - tree : version control tree state
+ *    - config : user's configuration state
+ * Returns: a triplet of the updated tree state, the updated config state, and a feedback variant
+ * which will be outputted to in the terminal to the user *)
 let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config):palm_tree * config * feedback =
   let (repo_dir, current_branch) = get_config config in
   let work_dir = get_work_dir repo_dir in
