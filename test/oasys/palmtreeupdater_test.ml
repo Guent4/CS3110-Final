@@ -152,7 +152,7 @@ TEST_MODULE "add, add_all and remove tests" = struct
   (
     let (ad, rem) = alltree.index in 
     let wug = List.mem ad ((Sys.getcwd()) ^ "/test_proj/"  ^ "wuggle.txt") in
-    let wug2 = List.mem ad ((Sys.getcwd()) ^ "/test_proj/"  ^ "wuggle2.txt") in
+    let wug2 = List.mem ad ((Sys.getcwd()) ^ "/test_proj/"  ^ "test.txt") in
     wug && wug2
   )
 end
@@ -284,7 +284,6 @@ FileUtil.rm ["add1.txt";"add2.txt"]
     | Success _ -> true
     | Failure _ -> false
     )
->>>>>>> master
 end
 
 TEST_MODULE "CONFIG" = struct
