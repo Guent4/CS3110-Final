@@ -3,3 +3,5 @@ test_proj/
 oasys.rsa.pub
 oasys.rsa
 remote/
+server.res
+remote/buffer
