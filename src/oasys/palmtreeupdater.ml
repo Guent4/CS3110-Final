@@ -420,13 +420,14 @@ let reset_branch_hard tree config repo_dir current_branch hash =
   | None ->
     let tree = {tree with work_dir=work_dir} in
     (tree,config,Failure ("No such commit with hash " ^ hash) )
-  | Some ((id,msg,committed),_) ->
+  | Some ((id,msg,committed),prev_commits) ->
     let (added,removed) = tree.index in
     let added = added |-| committed in
     let removed = removed |-| committed in
     let source_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
     let target_dir = repo_dir in
     let () = copy_over_files repo_dir committed source_dir target_dir in
+    let commit_tree = CommitTree.add current_branch ((id,msg,committed)::prev_commits) commit_tree in
     let tree = {
       head= (id,msg,committed);
       index= (added,removed);
@@ -535,15 +536,28 @@ let config_set tree config repo_dir current_branch key value =
   )
   | _ -> (tree,config,Failure "Unrecognized key")
 
-let merge_heads source target repo_dir branch_name state =
+let find_common_ancestor tree current_branch branch_name =
+  let commit_tree = tree.commit_tree in
+  let branch = CommitTree.find current_branch commit_tree in
+  let branch' = CommitTree.find branch_name commit_tree in
+  let difference = branch |-| branch' in
+  match branch |-| difference with
+  | [] -> assert false
+  | x::xs -> x
+
+
+let merge_heads source target repo_dir current_branch branch_name state =
+  let (tree,_) = state in
   let (id',_,committed') = source in
   let (id'',_,committed'') = target in
+  let (ancestor_id,_,ancestor_committed) = find_common_ancestor tree current_branch branch_name in
   let resolved = (committed' |-| committed'') |+| (committed'' |-| committed') in
   let conflicted = (committed' |+| committed'') |-| resolved in
   let source_resolved = resolved |-| committed'' in
   let target_resolved = resolved |-| committed' in
   let source_dir = repo_dir ^ oasys_dir ^ id' ^ "/" in
   let target_dir = repo_dir ^ oasys_dir ^ id'' ^ "/" in
+  let ancestor_dir = repo_dir ^ oasys_dir ^ ancestor_id ^ "/" in
   let () = copy_over_files repo_dir source_resolved source_dir repo_dir in
   let () = copy_over_files repo_dir target_resolved target_dir repo_dir in
   let conflicted' = abbrev_files repo_dir conflicted in
@@ -551,9 +565,10 @@ let merge_heads source target repo_dir branch_name state =
     List.iter
     (fun c ->
       let f1 = source_dir ^ c in
-      let f2 = target_dir ^ c in
-      let f3 = repo_dir ^ c in
-      let () = Fileio.merge_files f1 f2 f3 "HEAD" branch_name in
+      let f2 = ancestor_dir ^ c in
+      let f3 = target_dir ^ c in
+      let f4 = repo_dir ^ c in
+      let () = Fileio.merge_files "HEAD" ancestor_id branch_name f1 f2 f3 f4 in
       ()
     )
     conflicted'
@@ -593,7 +608,7 @@ let merge tree config repo_dir current_branch branch_name =
         else
           (match target_branch with
           | target_head::_ ->
-            let (id,msg,committed) = merge_heads source_head target_head repo_dir branch_name (tree,config) in
+            let (id,msg,committed) = merge_heads source_head target_head repo_dir current_branch branch_name (tree,config) in
             let source_dir = repo_dir in
             let target_dir = repo_dir ^ oasys_dir ^ id ^ "/" in
             let () = Fileio.create_dir (repo_dir ^ oasys_dir ^ id ^ "/") in
@@ -715,6 +730,9 @@ let pull tree config repo_dir current_branch =
     | _ -> (tree,config,Failure "Bad upstream provided. Try: [username]@[domain]")
   )
 
+(* updates the state of the version control tree
+ *
+ *)
 let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config):palm_tree * config * feedback =
   let (repo_dir, current_branch) = get_config config in
   let work_dir = get_work_dir repo_dir in
