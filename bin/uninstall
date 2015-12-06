@@ -15,11 +15,20 @@ if [[ " $file_content " =~ $regex ]]
     OASYS_BIN=${OASYS_ABS_PATH}
     CUR_DIR=$(pwd)
     cd ${OASYS_BIN}/../
+
     bin/clean
+    rm oasys.rsa
+    rm oasys.rsa.pub
     rm -rf repos/
+    rm -rf remote/
+
     cd ${CUR_DIR}
+
     sed -i '/oasys/d' ~/.bashrc
     sed -i '/OASYS/d' ~/.bashrc
+
+    rm -rf ~/.oasys_origin
+
     printf '\n%s\n%s\n\n' 'OASYS has been uninstalled :-( .' 'Please restart your terminal for changes to be registered.'
   else
     printf '\n%s\n' 'OASYS is not installed on your system.'
