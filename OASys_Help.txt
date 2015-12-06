@@ -28,7 +28,7 @@ OASys Help
 
 <SOFT VS MIXED VS HARD RESET> - There are three types of RESETs:
 	- SOFT - Only moves the HEAD pointer. Both the index and the working directory are not changed. Therefore SOFT RESET is useful for redoing a commit and combining several commits into one.
-	- MIXED (default) - Moves both the HEAD pointer to the new location and also modifies the index to match that of the new HEAD even thoug hall changes in the working directory are still there. The changes in the working directory are unstaged at this point. Therefore COMMIT will not do anything because the index matches HEAD. To COMMIT the changes, call ADD on all the files and then COMMIT.
+	- MIXED (default) - Moves both the HEAD pointer to the new location and also modifies the index to match that of the new HEAD even though all changes in the working directory are still there. The changes in the working directory are unstaged at this point. Therefore COMMIT will not do anything because the index matches HEAD. To COMMIT the changes, call ADD on all the files and then COMMIT.
 	- HARD - HEAD pointer, index, and the working directory are all moved. Note, this is probably what you are thinking of when you think of RESET. Since the working directory is updated, what you see in your files is what was commited previously. This is useful for going back in time and getting rid of all the changes since that commit
 
 
