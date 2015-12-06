@@ -27,6 +27,7 @@ if [[ " $file_content " =~ $regex ]]
     mkdir repos
     mkdir ~/.oasys_origin
     mkdir remote
+    touch remote/buffer
 
     cd ${CUR_DIR}
     printf '\n\n%s\n%s\n' 'Installation Successful' 'Please restart your terminal for changes to be registered.'
