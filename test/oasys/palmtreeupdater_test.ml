@@ -149,15 +149,18 @@ TEST_MODULE "add, add_all and remove tests" = struct
 		rmconfig' = rmconfig
 	)
 
+	(*TEST FILES*)
+	let () = Out_channel.write_all "./test_proj/wuggle.txt" ~data:"david"
+	let () = Out_channel.write_all "./test_proj/test.txt" ~data:"david"
 	(*ADD ALL TESTS*)
-(*   let (alltree, allconfig, allfeedback) = add_all rmtree' rmconfig'
+  let (alltree, allconfig, allfeedback) = add_all rmtree' rmconfig'
 	TEST_UNIT = assert
 	(
 		let (ad, rem) = alltree.index in
 		let wug = List.mem ad ((Sys.getcwd()) ^ "/test_proj/"  ^ "wuggle.txt") in
 		let wug2 = List.mem ad ((Sys.getcwd()) ^ "/test_proj/"  ^ "test.txt") in
 		wug && wug2
-	) *)
+	)
 end
 (*****************************************************************************)
 TEST_MODULE "commit tests" = struct
