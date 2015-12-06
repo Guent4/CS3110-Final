@@ -80,13 +80,7 @@ let rec find_commit hash = function
   )
 
 let init tree config repo_dir current_branch =
-(*   print_endline repo_dir;
-  print_endline "START";
-  (List.iter print_endline tree.work_dir); *)
   let work_dir = get_work_dir repo_dir in
-(*   print_endline "MID";
-  (List.iter print_endline work_dir);
-  print_endline "END"; *)
   match Fileio.file_exists (repo_dir ^ oasys_dir) with
   | true ->
     let tree = {tree with work_dir=work_dir} in
@@ -358,7 +352,7 @@ let file_batch_op op tree config repo_dir current_branch files =
   in
   match files' with
   | [] ->
-  let path_spec = Listops.to_string files "" " " "" in
+  let path_spec = Listops.to_string files "" "" "" in
   (tree,config,Failure (Feedback.cannot_find path_spec))
   | files ->
   let f t c = op t c repo_dir current_branch in
@@ -723,10 +717,12 @@ let pull tree config repo_dir current_branch =
 
 let update_tree (cmd:cmd_expr) (tree:palm_tree) (config:config):palm_tree * config * feedback =
   let (repo_dir, current_branch) = get_config config in
+  let work_dir = get_work_dir repo_dir in
+  let tree = {tree with work_dir=work_dir} in
   match cmd with
   | (INIT,[EMPTY],[]) -> init tree config repo_dir current_branch
   | (ADD,[EMPTY],files) -> file_batch_op add tree config repo_dir current_branch files
-  | (ADD,[ALL],[]) -> file_batch_op add tree config repo_dir current_branch tree.work_dir
+  | (ADD,[ALL],[]) -> file_batch_op add tree config repo_dir current_branch (abbrev_files repo_dir tree.work_dir)
   | (RM,[EMPTY],files) -> file_batch_op rm_file tree config repo_dir current_branch files
   | (RM,[FILE],files) -> file_batch_op rm_file tree config repo_dir current_branch files
   | (RM,[BNCH],[branch_name]) -> rm_branch tree config repo_dir current_branch branch_name
