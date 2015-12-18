@@ -96,33 +96,33 @@ let remove_file (filename:string) : unit =
 let merge_3_way (label_a:string) (label_b:string) (label_c:string)
     (a:string list) (b:string list) (c:string list) : string list =
   let resolve_conflict a b c =
-    let rec b_c_conflict_rec in_a in_b in_c conflict = match in_a,in_b,in_c with
-      | _,[],[] -> (in_a,in_b,in_c,conflict@["======"])
-      | _,in_bh::in_bt,[] -> (in_a,in_b,in_c,conflict@["======"])
-      | _,[],in_ch::in_ct -> (in_a,in_b,in_c,conflict@["======"])
+    let rec b_c_conflict_rec in_a in_b in_c top bot = match in_a,in_b,in_c with
+      | _,[],[] -> (in_a,in_b,in_c,top,bot)
+      | _,in_bh::in_bt,[] -> (in_a,in_b,in_c,top,bot)
+      | _,[],in_ch::in_ct -> (in_a,in_b,in_c,top,bot)
       | [],in_bh::in_bt,in_ch::in_ct -> (
-        if (in_bh = in_ch) then (in_a,in_b,in_c,conflict@["======"])
+        if (in_bh = in_ch) then (in_a,in_b,in_c,top,bot)
         else (
-          let (a',b',c',conflict') = b_c_conflict_rec [] in_bt in_ct (conflict@[in_bh]) in
-          (a',b',c',(conflict'@[in_ch]))
+          let (a',b',c',top',bot') = b_c_conflict_rec [] in_bt in_ct (top@[in_bh]) bot in
+          (a',b',c',top',(bot'@[in_ch]))
         )
       )
       | in_ah::in_at,in_bh::in_bt,in_ch::in_ct -> (
         if (in_bh = in_ch || in_ah = in_bh || in_ah = in_ch)
-          then (in_a,in_b,in_c,conflict@["======"])
+          then (in_a,in_b,in_c,top,bot)
         else (
-          let (a',b',c',conflict') = b_c_conflict_rec in_at in_bt in_ct (conflict@[in_bh]) in
-          (a',b',c',(conflict'@[in_ch]))
+          let (a',b',c',top',bot') = b_c_conflict_rec in_at in_bt in_ct (top@[in_bh]) bot in
+          (a',b',c',top',(bot'@[in_ch]))
         )
       ) in
-    let (a',b',c',conflict') = b_c_conflict_rec a b c [">>>>>> "^label_b] in
-    let conflict' = conflict'@["<<<<<< "^label_c] in
-    (a',b',c',conflict') in
+    let (a',b',c',top',bot') = b_c_conflict_rec a b c [] [] in
+    let resolved = [">>>>>> "^label_b]@top'@["======"]@(List.rev bot')@["<<<<<< "^label_c] in
+    (a',b',c',resolved) in
   let rec merge_3_way_rec a b c out =
     match a,b,c with
     | _,[],[] -> out
-    | _,bh::bt,[] -> out@b
-    | _,[],ch::ct -> out@c
+    | _,bh::bt,[] -> if (a = b) then out else out@b
+    | _,[],ch::ct -> if (a = c) then out else out@c
     | [],bh::bt,ch::ct -> (
       if (bh = ch) then merge_3_way_rec a bt ct (out@[bh])
       else (
